@@ -20,46 +20,49 @@
   <main class="main-content">
     <div id="map"></div>
 
-    <!-- TÍTOL FLOTANT A LA PART SUPERIOR DRETA (SENSE FONS, ESTIL POSTER) -->
-    <div class="floating-title-overlay">
-      <div class="title-line-1">RUTA DELS</div>
-      <div class="title-line-2">PESSEBRES</div>
-      <div class="title-line-3">2026</div>
-    </div>
-
-    <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
-    <div class="floating-top-actions">
-      <!-- QUAN NO ESTÀ LOGUEJAT: Botó visible per registrar-se / entrar -->
-      <button class="btn-header btn-auth-pill" id="btn-open-auth">
-        <span>👤</span> REGISTRA'T / ENTRAR
-      </button>
-
-      <!-- QUAN ESTÀ LOGUEJAT: Píndola d'usuari connectat -->
-      <div id="user-logged-pill" class="btn-header btn-logged-pill" style="display: none;">
-        <span>🎅</span>
-        <strong id="logged-user-name">Usuari</strong>
-        <span id="logged-user-visits" class="badge-visits">0 visitats</span>
-        <button type="button" class="btn-logout-small" id="btn-direct-logout" title="Tancar sessió">✕</button>
+    <!-- CAPÇALERA SUPERIOR (FLOTANT I ADAPTADA PER ESCRIPTORI I MÒBIL) -->
+    <header class="app-top-header" id="app-top-header">
+      <!-- TÍTOL FLOTANT (A MÒBIL INTEGRAT AMB ESTIL NET I A ESCRIPTORI A LA DRETA SENSE FONS) -->
+      <div class="floating-title-overlay">
+        <span class="title-line-1">RUTA DELS</span>
+        <span class="title-line-2">PESSEBRES</span>
+        <span class="title-line-3">2026</span>
       </div>
 
-      <div class="top-stats-container">
-        <div class="stat-pill" title="Pessebres aprovats">
-          <span>🎄</span> <span id="stat-points">0</span>
+      <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
+      <div class="floating-top-actions">
+        <!-- QUAN NO ESTÀ LOGUEJAT: Botó visible per registrar-se / entrar -->
+        <button class="btn-header btn-auth-pill" id="btn-open-auth">
+          <span>👤</span> <span class="auth-btn-text">REGISTRA'T / ENTRAR</span>
+        </button>
+
+        <!-- QUAN ESTÀ LOGUEJAT: Píndola d'usuari connectat -->
+        <div id="user-logged-pill" class="btn-header btn-logged-pill" style="display: none;">
+          <span>🎅</span>
+          <strong id="logged-user-name">Usuari</strong>
+          <span id="logged-user-visits" class="badge-visits">0 visitats</span>
+          <button type="button" class="btn-logout-small" id="btn-direct-logout" title="Tancar sessió">✕</button>
         </div>
-        <div class="stat-divider"></div>
-        <div class="stat-pill" title="Participants">
-          <span>👥</span> <span id="stat-users">0</span>
+
+        <div class="top-stats-container">
+          <div class="stat-pill" title="Pessebres aprovats">
+            <span>🎄</span> <span id="stat-points">0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill" title="Participants">
+            <span>👥</span> <span id="stat-users">0</span>
+          </div>
         </div>
+
+        <button class="btn-header" id="btn-open-ranking">
+          <span>🏆</span> RÀNQUING
+        </button>
+
+        <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">
+          <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
+        </button>
       </div>
-
-      <button class="btn-header" id="btn-open-ranking">
-        <span>🏆</span> RÀNQUING
-      </button>
-
-      <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">
-        <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
-      </button>
-    </div>
+    </header>
 
     <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA (DESPLEGABLE A MÒBIL) -->
     <div class="floating-index-panel" id="floating-index-panel">

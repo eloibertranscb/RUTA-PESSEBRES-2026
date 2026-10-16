@@ -197,7 +197,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        map.fitBounds(bounds, {
+          paddingTopLeft: [15, 92],
+          paddingBottomRight: [15, 75],
+          maxZoom: 16
+        });
+      } else {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+      }
     }
 
     updateTopStats();

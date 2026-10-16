@@ -171,6 +171,12 @@ body {
   background: #fecaca;
 }
 
+/* CAPÇALERA SUPERIOR */
+.app-top-header {
+  position: static;
+  pointer-events: none;
+}
+
 /* TÍTOL FLOTANT A LA PART SUPERIOR DRETA (SENSE FONS) */
 .floating-title-overlay {
   position: absolute;
@@ -184,6 +190,7 @@ body {
 
 .floating-title-overlay .title-line-1,
 .floating-title-overlay .title-line-2 {
+  display: block;
   font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
   font-size: 3.2rem;
   font-weight: 900;
@@ -195,6 +202,7 @@ body {
 }
 
 .floating-title-overlay .title-line-3 {
+  display: block;
   font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
   font-size: 2.8rem;
   font-weight: 900;
@@ -1495,60 +1503,121 @@ body {
    ADAPTACIÓ COMPLETA A MÒBIL I PANTALLES PETITES
    ========================================================================== */
 @media (max-width: 768px) {
-  /* Títol a la part superior dreta: compacte per no tapar el mapa */
-  .floating-title-overlay {
-    top: 10px;
-    right: 12px;
-    text-align: right;
-  }
-  .floating-title-overlay .title-line-1,
-  .floating-title-overlay .title-line-2 {
-    font-size: 1.35rem;
-    letter-spacing: 1.5px;
-    line-height: 0.95;
-  }
-  .floating-title-overlay .title-line-3 {
-    font-size: 1.15rem;
-    letter-spacing: 2px;
-    margin-top: 2px;
-  }
-
-  /* Botons superiors flotants a l'esquerra */
-  .floating-top-actions {
+  /* Contenidor capçalera unificat flotant a la part superior */
+  .app-top-header {
+    position: absolute;
     top: 10px;
     left: 10px;
-    gap: 5px;
-    max-width: calc(100vw - 165px);
+    right: 10px;
+    z-index: 1000;
+    background: rgba(253, 251, 247, 0.95);
+    border: 1.5px solid #522415;
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: auto;
+  }
+
+  /* Títol: centrat, una línia neta, elegant i mai tallat */
+  .floating-title-overlay {
+    position: static;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .floating-title-overlay .title-line-1,
+  .floating-title-overlay .title-line-2 {
+    display: inline;
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: #522415;
+    text-shadow: none;
+    line-height: 1;
+  }
+
+  .floating-title-overlay .title-line-3 {
+    display: inline;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #7a1a12;
+    text-shadow: none;
+    line-height: 1;
+    margin-top: 0;
+  }
+
+  /* Els botons a mòbil: fila horitzontal neta */
+  .floating-top-actions {
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
   }
 
   .btn-header {
-    padding: 6px 10px;
-    font-size: 0.76rem;
+    padding: 5px 9px;
+    font-size: 0.74rem;
     gap: 4px;
+    box-shadow: none;
+    border: 1px solid #522415;
   }
 
   .btn-auth-pill {
-    padding: 6px 11px !important;
-    font-size: 0.76rem !important;
+    padding: 5px 10px !important;
+    font-size: 0.74rem !important;
+    box-shadow: none;
   }
 
   .btn-logged-pill {
-    padding: 5px 8px;
-    font-size: 0.76rem;
+    padding: 4px 8px;
+    font-size: 0.74rem;
+    box-shadow: none;
   }
 
   .top-stats-container {
-    padding: 4px 8px;
+    padding: 4px 7px;
     gap: 6px;
+    box-shadow: none;
+    border: 1px solid #522415;
   }
 
   .stat-pill {
-    font-size: 0.75rem;
+    font-size: 0.74rem;
   }
 
   /* Desactivar controls natius de Leaflet (a mòbil s'usa zoom tàctil / pinch) */
   .leaflet-control-zoom {
     display: none !important;
+  }
+
+  /* Barra d'atribució Leaflet discreta per no xocar amb botons */
+  .leaflet-bottom.leaflet-right {
+    font-size: 8px;
+    opacity: 0.55;
+    pointer-events: none;
+    bottom: 2px;
+  }
+
+  .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.6) !important;
+    margin: 0 !important;
+    padding: 0 4px !important;
+    font-size: 8px !important;
   }
 
   /* DESPLEGABLE DE L'ÍNDEX A MÒBIL */
@@ -1557,7 +1626,7 @@ body {
   }
 
   .floating-index-panel {
-    bottom: 14px;
+    bottom: 24px;
     left: 12px;
     max-width: calc(100vw - 180px);
     z-index: 950;
@@ -1568,14 +1637,15 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    height: 38px;
     background: rgba(253, 251, 247, 0.96);
     border: 1.5px solid #522415;
     border-radius: var(--radius-sm);
-    padding: 9px 12px;
+    padding: 0 12px;
     cursor: pointer;
     font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
     font-weight: 900;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: #522415;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(8px);
@@ -1630,13 +1700,15 @@ body {
 
   /* Botó "+ Afegeix un pessebre" a mòbil */
   .btn-floating-add {
-    bottom: 14px;
+    bottom: 24px;
     right: 12px;
-    padding: 10px 14px;
+    height: 38px;
+    padding: 0 14px;
     font-size: 0.82rem;
     gap: 6px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
     z-index: 950;
+    border-radius: var(--radius-sm);
   }
 
   /* Popups de Leaflet a mòbil */
@@ -1691,39 +1763,36 @@ body {
   }
 }
 
-/* Pantalles mòbils molt petites (< 420px) */
-@media (max-width: 420px) {
-  .floating-title-overlay {
+/* Pantalles mòbils petites (< 390px) */
+@media (max-width: 390px) {
+  .app-top-header {
     top: 8px;
+    left: 8px;
     right: 8px;
+    padding: 6px 8px;
   }
   .floating-title-overlay .title-line-1,
   .floating-title-overlay .title-line-2 {
-    font-size: 1.15rem;
+    font-size: 0.95rem;
     letter-spacing: 1px;
   }
   .floating-title-overlay .title-line-3 {
-    font-size: 0.95rem;
-  }
-  .floating-top-actions {
-    top: 8px;
-    left: 8px;
-    max-width: calc(100vw - 120px);
+    font-size: 0.85rem;
   }
   .btn-header {
-    padding: 5px 8px;
-    font-size: 0.72rem;
+    padding: 4px 7px;
+    font-size: 0.7rem;
   }
   .btn-auth-pill {
-    padding: 5px 8px !important;
-    font-size: 0.72rem !important;
+    padding: 4px 7px !important;
+    font-size: 0.7rem !important;
   }
   .btn-floating-add {
-    padding: 9px 11px;
+    padding: 0 10px;
     font-size: 0.76rem;
   }
   .index-panel-toggle {
-    padding: 8px 10px;
-    font-size: 0.75rem;
+    padding: 0 10px;
+    font-size: 0.76rem;
   }
 }
