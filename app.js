@@ -536,10 +536,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // PESTANYES REGISTRAR-SE / INICIAR SESSIÓ
+  const tabRegister = document.getElementById('auth-tab-register');
+  const tabLogin = document.getElementById('auth-tab-login');
+  const authHeaderTitle = document.getElementById('auth-header-title');
+  const authHeaderSub = document.getElementById('auth-header-sub');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const authHelpNote = document.getElementById('auth-help-note');
+  const authLabelUser = document.getElementById('auth-label-username');
+
+  function setAuthMode(mode) {
+    if (mode === 'register') {
+      if (tabRegister) tabRegister.classList.add('active');
+      if (tabLogin) tabLogin.classList.remove('active');
+      if (authHeaderTitle) authHeaderTitle.textContent = "Registra't a la Ruta";
+      if (authHeaderSub) authHeaderSub.textContent = "Crea el teu compte per validar els pessebres que visites i participar al rànquing!";
+      if (authSubmitBtn) authSubmitBtn.textContent = '✨ REGISTRAR-ME I ENTRAR';
+      if (authLabelUser) authLabelUser.textContent = "Nom d'usuari / participant";
+      if (authHelpNote) authHelpNote.innerHTML = "📝 <strong>Nou participant?</strong> Escull el teu nom i contrasenya per crear el teu perfil i començar a marcar pessebres!";
+    } else {
+      if (tabLogin) tabLogin.classList.add('active');
+      if (tabRegister) tabRegister.classList.remove('active');
+      if (authHeaderTitle) authHeaderTitle.textContent = "Inicia la teva sessió";
+      if (authHeaderSub) authHeaderSub.textContent = "Introdueix el teu nom i contrasenya (o el compte d'admin) per continuar.";
+      if (authSubmitBtn) authSubmitBtn.textContent = '🔑 ENTRAR / INICIAR SESSIÓ';
+      if (authLabelUser) authLabelUser.textContent = "Nom d'usuari (o 'admin')";
+      if (authHelpNote) authHelpNote.innerHTML = "🔑 Ja tens compte creat o ets l'administrador? Posa el teu nom i contrasenya per entrar.";
+    }
+  }
+
+  if (tabRegister) {
+    tabRegister.addEventListener('click', () => setAuthMode('register'));
+  }
+  if (tabLogin) {
+    tabLogin.addEventListener('click', () => setAuthMode('login'));
+  }
+
   // BOTÓ PER OBRIR IDENTIFICACIÓ / REGISTRE
   const btnOpenAuth = document.getElementById('btn-open-auth');
   if (btnOpenAuth) {
-    btnOpenAuth.addEventListener('click', window.openAuthModal);
+    btnOpenAuth.addEventListener('click', () => {
+      setAuthMode('register');
+      window.openAuthModal();
+    });
   }
 
   // CLIC A LA PÍNDOLA DE L'USUARI LOGUEJAT (PERFIL)

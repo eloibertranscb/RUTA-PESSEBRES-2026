@@ -211,25 +211,31 @@
         <div class="auth-welcome-banner">
           <button class="btn-close-modal auth-close-btn">&times;</button>
           <div class="auth-welcome-icon">🎄</div>
-          <h2 class="auth-welcome-title">Ruta dels Pessebres</h2>
-          <p class="auth-welcome-sub">Escriu el teu nom i contrasenya per validar els pessebres que visites i sortir al rànquing!</p>
+          <h2 class="auth-welcome-title" id="auth-header-title">Ruta dels Pessebres</h2>
+          <p class="auth-welcome-sub" id="auth-header-sub">Escriu el teu nom i contrasenya per validar els pessebres que visites i sortir al rànquing!</p>
         </div>
 
         <div class="auth-form-body">
+          <!-- PESTANYES PER TRIAR REGISTRAR-SE O INICIAR SESSIÓ -->
+          <div class="auth-tab-switch" id="auth-tab-switch">
+            <button type="button" class="auth-tab-btn active" id="auth-tab-register">✨ REGISTRAR-SE</button>
+            <button type="button" class="auth-tab-btn" id="auth-tab-login">🔑 INICIAR SESSIÓ</button>
+          </div>
+
           <form id="form-unified-auth">
             <div class="auth-input-group">
-              <label class="auth-input-label" for="auth-username">El teu Nom (o 'admin')</label>
-              <input type="text" id="auth-username" class="auth-input" placeholder="El teu nom" required autocomplete="username">
+              <label class="auth-input-label" for="auth-username" id="auth-label-username">Nom d'usuari / participant</label>
+              <input type="text" id="auth-username" class="auth-input" placeholder="Escriu el teu nom (o 'admin')..." required autocomplete="username">
             </div>
             <div class="auth-input-group">
               <label class="auth-input-label" for="auth-password">Contrasenya</label>
               <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
             </div>
-            <button type="submit" class="auth-btn-primary">CONTINUAR →</button>
+            <button type="submit" class="auth-btn-primary" id="auth-submit-btn">✨ REGISTRAR-ME I ENTRAR</button>
           </form>
 
-          <div class="auth-help-note">
-            ✨ Si ja tens compte, s'iniciarà la sessió.<br>Si és el teu primer cop, <strong>es crearà automàticament!</strong>
+          <div class="auth-help-note" id="auth-help-note">
+            📝 <strong>Nou participant?</strong> Escull el teu nom i contrasenya per crear el teu perfil i començar a marcar pessebres!
           </div>
         </div>
       </div>
