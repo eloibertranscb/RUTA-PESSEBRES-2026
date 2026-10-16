@@ -917,9 +917,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const mapW = 1380;
-    const mapH = 1260;
+    const mapH = 1335;
     const mapX = 75;
-    const mapY = 260;
+    const mapY = 245;
 
     // Descarreguem la imatge del mapa mitjançant fetch per garantir que el canvas no quedi buit
     async function loadMap() {
@@ -1063,30 +1063,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillText(String(num), mx, my);
       });
 
-      // Llegenda inferior del mapa
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-
-      ctx.beginPath();
-      ctx.arc(mapX + 15, mapY + mapH + 30, 8, 0, Math.PI * 2);
-      ctx.fillStyle = '#b81414';
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
-      ctx.stroke();
-
-      ctx.fillStyle = '#522415';
-      ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillText('Pessebre numerat (1 - ' + points.length + ')', mapX + 32, mapY + mapH + 30);
-
-      ctx.textAlign = 'right';
-      ctx.fillText('📍 Terme Municipal de Sant Feliu Sasserra', mapX + mapW, mapY + mapH + 30);
-
       // 4. Columna Dreta: Índex de Pessebres
       const idxX = 1490;
-      const idxY = 260;
+      const idxY = 245;
       const idxW = 835;
-      const idxH = 1260;
+      const idxH = 1335;
 
       ctx.fillStyle = '#fcf9f2';
       ctx.fillRect(idxX, idxY, idxW, idxH);
@@ -1108,11 +1089,30 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.lineTo(idxX + idxW - 30, idxY + 60);
       ctx.stroke();
 
+      // Funció per trencar el nom en múltiples línies netament (MAI amb '...')
+      function wrapText(text, maxChars = 22) {
+        if (!text) return [''];
+        if (text.length <= maxChars) return [text];
+        const words = text.split(' ');
+        const lines = [];
+        let cur = '';
+        for (const w of words) {
+          if ((cur + ' ' + w).trim().length <= maxChars) {
+            cur = (cur + ' ' + w).trim();
+          } else {
+            if (cur) lines.push(cur);
+            cur = w;
+          }
+        }
+        if (cur) lines.push(cur);
+        return lines.length > 0 ? lines : [text];
+      }
+
       // 2 Columnes d'Índex
-      const col1X = idxX + 25;
+      const col1X = idxX + 20;
       const col2X = idxX + 430;
-      const startListY = idxY + 105;
-      const rowHeight = 72;
+      const startListY = idxY + 76;
+      const rowHeight = 78;
 
       points.forEach((pt, idx) => {
         const num = idx + 1;
@@ -1121,32 +1121,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = isCol1 ? idx : idx - 10;
         const itemY = startListY + (row * rowHeight);
 
-        // Insígnia número
+        // Nom del pessebre (multi-línia si cal, MAI amb '...')
+        const nameLines = wrapText(pt.name, 23);
+        const hasTwoLines = nameLines.length > 1;
+
+        // Insígnia número (cercle vermell fosc)
+        const badgeCenterY = itemY + (hasTwoLines ? 14 : 10);
         ctx.beginPath();
-        ctx.arc(colX + 16, itemY - 6, 16, 0, Math.PI * 2);
+        ctx.arc(colX + 16, badgeCenterY, 15, 0, Math.PI * 2);
         ctx.fillStyle = '#7a1a12';
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.font = '900 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(num), colX + 16, itemY - 6);
+        ctx.fillText(String(num), colX + 16, badgeCenterY);
 
-        // Nom pessebre
+        // Text títol del pessebre (línies completes sense ...)
         ctx.fillStyle = '#2a1a14';
-        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
+        ctx.textBaseline = 'top';
 
-        let name = pt.name;
-        if (name.length > 25) name = name.substring(0, 23) + '…';
-        ctx.fillText(name, colX + 42, itemY - 6);
+        let curTextY = itemY;
+        nameLines.forEach((line) => {
+          ctx.fillText(line, colX + 38, curTextY);
+          curTextY += 19;
+        });
+
+        // Subtítol autor a sota, més petit
+        const author = pt.submitted_by || 'Organització';
+        ctx.fillStyle = '#8c5338';
+        ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillText(`👤 ${author}`, colX + 38, curTextY + 1);
       });
 
       // Caixa d'informació pràctica
-      const infoY = idxY + 840;
-      const infoH = 390;
+      const infoY = idxY + 870;
+      const infoH = 440;
       ctx.fillStyle = '#f3ebe0';
       ctx.fillRect(idxX + 25, infoY, idxW - 50, infoH);
       ctx.strokeStyle = '#c4b49e';
@@ -1157,12 +1170,12 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.font = '900 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText('ℹ️ INFORMACIÓ PRÀCTICA I NORMES', idxX + 45, infoY + 22);
+      ctx.fillText('ℹ️ INFORMACIÓ PRÀCTICA I NORMES', idxX + 45, infoY + 24);
 
       ctx.fillStyle = '#4a382c';
       ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const lineSpacing = 32;
-      let lineY = infoY + 68;
+      const lineSpacing = 34;
+      let lineY = infoY + 74;
 
       const infoLines = [
         '• Ruta circular pel terme de Sant Feliu Sasserra.',
@@ -1180,24 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lineY += lineSpacing;
       });
 
-      // 5. Peu de pàgina (SENSE menció d'Ajuntament ni Comissió)
-      ctx.strokeStyle = '#7a1a12';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(75, 1630);
-      ctx.lineTo(W - 75, 1630);
-      ctx.stroke();
-
-      ctx.fillStyle = '#7a6555';
-      ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('Bones Festes 2026!', 75, 1645);
-
-      ctx.textAlign = 'right';
-      ctx.fillText('Ruta dels Pessebres 2026 • Format A4 Horitzontal', W - 75, 1645);
-
-      // 6. Descarregar fitxer directe en PDF o Imatge
+      // 5. Descarregar fitxer directe en PDF o Imatge
       const filename = `Ruta_Pessebres_2026_Sant_Feliu_Sasserra_${dateFile}`;
 
       if (window.jspdf && window.jspdf.jsPDF) {
