@@ -215,7 +215,13 @@ class PessebresDB {
   }
 
   getApprovedPoints() {
-    return this.getPoints().filter(p => p.status === 'APPROVED');
+    const pts = this.getPoints().filter(p => p.status === 'APPROVED');
+    return pts.sort((a, b) => {
+      const numA = parseInt(a.id.replace(/\D/g, ''), 10);
+      const numB = parseInt(b.id.replace(/\D/g, ''), 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return (a.created_at || '').localeCompare(b.created_at || '');
+    });
   }
 
   getPendingPoints() {

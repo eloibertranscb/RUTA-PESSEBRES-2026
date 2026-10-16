@@ -29,22 +29,17 @@
 
     <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
     <div class="floating-top-actions">
-      <!-- FORMULARI DIRECTE NOM I CONTRASENYA (A VISTA) -->
-      <div class="floating-auth-direct" id="floating-auth-direct">
-        <form id="form-direct-auth" class="direct-auth-form">
-          <div class="direct-auth-inputs">
-            <input type="text" id="direct-username" class="direct-input" placeholder="El teu nom (o admin)" required autocomplete="username">
-            <input type="password" id="direct-password" class="direct-input" placeholder="Contrasenya" required autocomplete="current-password">
-            <button type="submit" class="btn-direct-submit">Entrar / Registrar-se</button>
-          </div>
-        </form>
+      <!-- QUAN NO ESTÀ LOGUEJAT: Botó visible per registrar-se / entrar -->
+      <button class="btn-header btn-auth-pill" id="btn-open-auth">
+        <span>👤</span> REGISTRA'T / ENTRAR
+      </button>
 
-        <div id="direct-user-logged" class="direct-logged-bar" style="display: none;">
-          <span class="direct-logged-avatar">👤</span>
-          <span class="direct-logged-name" id="direct-logged-name">Marc</span>
-          <span class="direct-logged-stats" id="direct-logged-stats">0 visitats</span>
-          <button type="button" class="btn-direct-logout" id="btn-direct-logout" title="Tancar sessió">Sortir</button>
-        </div>
+      <!-- QUAN ESTÀ LOGUEJAT: Píndola d'usuari connectat -->
+      <div id="user-logged-pill" class="btn-header btn-logged-pill" style="display: none;">
+        <span>🎅</span>
+        <strong id="logged-user-name">Marc</strong>
+        <span id="logged-user-visits" class="badge-visits">0 visitats</span>
+        <button type="button" class="btn-logout-small" id="btn-direct-logout" title="Tancar sessió">✕</button>
       </div>
 
       <div class="top-stats-container">
@@ -172,7 +167,7 @@
   </div>
 
   <!-- ----------------------------------------------------------------------
-       MODAL 3: PERFIL DE L'USUARI / REGISTRE I LOGIN
+       MODAL 3: IDENTIFICACIÓ I PERFIL INTUITIU
        ---------------------------------------------------------------------- -->
   <div class="modal-overlay" id="modal-profile">
     <div class="modal-card auth-modal-card">
@@ -190,53 +185,36 @@
           <div class="auth-visited-header" id="profile-visited-count-text">0 pessebres visitats</div>
           <ul class="visited-list" id="profile-visited-ul"></ul>
           <div class="auth-profile-actions">
-            <button type="button" class="auth-btn-switch" id="btn-switch-user">Canviar d'usuari</button>
-            <button type="button" class="auth-btn-logout" id="btn-logout">Tancar sessió</button>
+            <button type="button" class="auth-btn-logout" id="btn-logout" style="width:100%;">Tancar sessió</button>
           </div>
         </div>
       </div>
 
-      <!-- VISTA IDENTIFICACIÓ / REGISTRE -->
+      <!-- VISTA IDENTIFICACIÓ / REGISTRE SENZILL I INTUITIU -->
       <div id="profile-view-auth">
         <div class="auth-welcome-banner">
           <button class="btn-close-modal auth-close-btn">&times;</button>
           <div class="auth-welcome-icon">🎄</div>
-          <h2 class="auth-welcome-title">Benvingut/da</h2>
-          <p class="auth-welcome-sub">Identifica't per marcar pessebres, demanar noves rutes i sortir al rànquing.</p>
+          <h2 class="auth-welcome-title">Ruta dels Pessebres</h2>
+          <p class="auth-welcome-sub">Escriu el teu nom i contrasenya per validar els pessebres que visites i sortir al rànquing!</p>
         </div>
 
         <div class="auth-form-body">
-          <!-- Pestanyes: Inicia sessió / Registra't -->
-          <div class="auth-tab-switch">
-            <button type="button" class="auth-tab-btn active" id="tab-btn-login">Inicia Sessió</button>
-            <button type="button" class="auth-tab-btn" id="tab-btn-register">Registra't</button>
+          <form id="form-unified-auth">
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="auth-username">El teu Nom (o 'admin')</label>
+              <input type="text" id="auth-username" class="auth-input" placeholder="Ex. Marc Vila" required autocomplete="username">
+            </div>
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="auth-password">Contrasenya</label>
+              <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="auth-btn-primary">CONTINUAR →</button>
+          </form>
+
+          <div class="auth-help-note">
+            ✨ Si ja tens compte, s'iniciarà la sessió.<br>Si és el teu primer cop, <strong>es crearà automàticament!</strong>
           </div>
-
-          <!-- FORMULARI 1: INICIAR SESSIÓ -->
-          <form id="form-login-user">
-            <div class="auth-input-group">
-              <label class="auth-input-label" for="login-username">Nom d'usuari</label>
-              <input type="text" id="login-username" class="auth-input" placeholder="El teu nom (o 'admin')" required autocomplete="username">
-            </div>
-            <div class="auth-input-group">
-              <label class="auth-input-label" for="login-password">Contrasenya</label>
-              <input type="password" id="login-password" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="auth-btn-primary">Entrar →</button>
-          </form>
-
-          <!-- FORMULARI 2: REGISTRAR-SE -->
-          <form id="form-register-user" style="display: none;">
-            <div class="auth-input-group">
-              <label class="auth-input-label" for="reg-username">Nom i Cognoms</label>
-              <input type="text" id="reg-username" class="auth-input" placeholder="Ex. Marc Vila" required autocomplete="name">
-            </div>
-            <div class="auth-input-group">
-              <label class="auth-input-label" for="reg-password">Tria una contrasenya</label>
-              <input type="password" id="reg-password" class="auth-input" placeholder="Mínim 3 caràcters" required autocomplete="new-password">
-            </div>
-            <button type="submit" class="auth-btn-primary">Crear Compte →</button>
-          </form>
         </div>
       </div>
 
