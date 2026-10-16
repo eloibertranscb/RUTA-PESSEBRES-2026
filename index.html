@@ -58,7 +58,7 @@
           <span>🏆</span> RÀNQUING
         </button>
 
-        <button class="btn-header btn-pdf-pill" id="btn-open-pdf" title="Exportar Mapa i Índex en PDF A4">
+        <button class="btn-header btn-pdf-pill" id="btn-open-pdf" onclick="window.openPdfExportModal()" title="Exportar Mapa i Índex en PDF A4">
           <span>📄</span> <span class="pdf-btn-text">PDF A4</span>
         </button>
 
@@ -79,7 +79,7 @@
         <ul class="index-panel-list" id="index-panel-ul">
           <!-- Generat dinàmicament per JS -->
         </ul>
-        <button type="button" class="btn-drawer-pdf" id="btn-drawer-pdf">
+        <button type="button" class="btn-drawer-pdf" id="btn-drawer-pdf" onclick="window.openPdfExportModal()">
           <span>📄</span> Exportar PDF A4
         </button>
       </div>
@@ -336,10 +336,10 @@
             Document oficial en format <strong>A4 Horitzontal</strong> preparat per imprimir o desar amb mapa, títol, data i índex.
           </p>
           <div class="pdf-modal-actions">
-            <button type="button" class="btn-pdf-download" id="btn-download-pdf-direct">
+            <button type="button" class="btn-pdf-download" id="btn-download-pdf-direct" onclick="window.downloadPdfA4()">
               <span>📥</span> Descarregar PDF (A4)
             </button>
-            <button type="button" class="btn-pdf-print" id="btn-print-pdf-direct">
+            <button type="button" class="btn-pdf-print" id="btn-print-pdf-direct" onclick="window.print()">
               <span>🖨️</span> Imprimir
             </button>
           </div>
@@ -411,6 +411,9 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- html2canvas (captura d'elements visuals i mapes) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <!-- html2pdf.js (exportació directa de PDF A4) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

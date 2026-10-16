@@ -872,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 14. EXPORTACIÓ EN PDF (A4 HORITZONTAL)
-  function openPdfExportModal() {
+  window.openPdfExportModal = function() {
     const today = new Date();
     const dateFormatted = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
     const metaDateEl = document.getElementById('pdf-meta-date');
@@ -916,7 +916,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (html2canvasLib && mapContainer) {
         html2canvasLib(mapContainer, {
           useCORS: true,
-          allowTaint: true,
+          allowTaint: false,
+          scale: 1.5,
           logging: false,
           ignoreElements: (el) => {
             if (!el || !el.classList) return false;
@@ -930,26 +931,49 @@ document.addEventListener('DOMContentLoaded', () => {
             );
           }
         }).then(canvas => {
-          if (snapshotImg) {
-            snapshotImg.src = canvas.toDataURL('image/jpeg', 0.95);
-            snapshotImg.style.display = 'block';
-          }
-          if (loadingEl) {
-            loadingEl.style.display = 'none';
+          try {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            if (snapshotImg) {
+              snapshotImg.src = dataUrl;
+              snapshotImg.style.display = 'block';
+            }
+            if (loadingEl) {
+              loadingEl.style.display = 'none';
+            }
+          } catch (secErr) {
+            console.warn('Fallback canvas directe:', secErr);
+            if (loadingEl) loadingEl.style.display = 'none';
+            const frame = document.getElementById('pdf-map-frame');
+            if (frame) {
+              if (snapshotImg) snapshotImg.style.display = 'none';
+              canvas.style.width = '100%';
+              canvas.style.height = '100%';
+              canvas.style.objectFit = 'cover';
+              canvas.id = 'pdf-map-canvas-rendered';
+              const oldCanvas = document.getElementById('pdf-map-canvas-rendered');
+              if (oldCanvas) oldCanvas.remove();
+              frame.appendChild(canvas);
+            }
           }
         }).catch(err => {
           console.error('Error generant captura del mapa:', err);
           if (loadingEl) {
-            loadingEl.innerHTML = `<span>⚠️ No s'ha pogut carregar la captura del mapa, però pots desar el PDF igualment.</span>`;
+            loadingEl.innerHTML = `<span>📍 Terme de Sant Feliu Sasserra</span>`;
           }
         });
       }
     }, 250);
-  }
+  };
 
-  function downloadPdfA4() {
+  window.downloadPdfA4 = function() {
     const sheet = document.getElementById('pdf-a4-sheet');
     if (!sheet) return;
+
+    const btn = document.getElementById('btn-download-pdf-direct');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Generant PDF...';
+    }
 
     showToast('⏳ Descarregant PDF en format A4 horitzontal...');
 
@@ -961,38 +985,62 @@ document.addEventListener('DOMContentLoaded', () => {
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, scrollX: 0 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        letterRendering: true,
+        width: 1000,
+        height: 707,
+        windowWidth: 1200,
+        windowHeight: 900,
+        scrollX: 0,
+        scrollY: 0
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
 
     if (window.html2pdf) {
       window.html2pdf().set(opt).from(sheet).save().then(() => {
         showToast('✅ PDF A4 descarregat correctament!');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>📥</span> Descarregar PDF (A4)';
+        }
       }).catch(err => {
-        console.error('Error descarregant PDF:', err);
-        showToast('⚠️ Error generant PDF. Pots utilitzar el botó "Imprimir".');
+        console.error('Error descarregant PDF amb html2pdf:', err);
+        showToast('⚠️ S\'obre la finestra d\'impressió per desar el document com a PDF.');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>📥</span> Descarregar PDF (A4)';
+        }
+        window.print();
       });
     } else {
       window.print();
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📥</span> Descarregar PDF (A4)';
+      }
     }
-  }
+  };
 
   const btnOpenPdf = document.getElementById('btn-open-pdf');
   if (btnOpenPdf) {
-    btnOpenPdf.addEventListener('click', openPdfExportModal);
+    btnOpenPdf.addEventListener('click', window.openPdfExportModal);
   }
 
   const btnDrawerPdf = document.getElementById('btn-drawer-pdf');
   if (btnDrawerPdf) {
     btnDrawerPdf.addEventListener('click', () => {
       collapseIndexPanel();
-      openPdfExportModal();
+      window.openPdfExportModal();
     });
   }
 
   const btnDownloadPdfDirect = document.getElementById('btn-download-pdf-direct');
   if (btnDownloadPdfDirect) {
-    btnDownloadPdfDirect.addEventListener('click', downloadPdfA4);
+    btnDownloadPdfDirect.addEventListener('click', window.downloadPdfA4);
   }
 
   const btnPrintPdfDirect = document.getElementById('btn-print-pdf-direct');
