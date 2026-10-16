@@ -58,10 +58,6 @@
           <span>🏆</span> RÀNQUING
         </button>
 
-        <button class="btn-header btn-pdf-pill" id="btn-open-pdf" onclick="window.openPdfExportModal()" title="Exportar Mapa i Índex en PDF A4">
-          <span>📄</span> <span class="pdf-btn-text">PDF A4</span>
-        </button>
-
         <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">
           <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
         </button>
@@ -79,8 +75,8 @@
         <ul class="index-panel-list" id="index-panel-ul">
           <!-- Generat dinàmicament per JS -->
         </ul>
-        <button type="button" class="btn-drawer-pdf" id="btn-drawer-pdf" onclick="window.openPdfExportModal()">
-          <span>📄</span> Exportar PDF A4
+        <button type="button" class="btn-drawer-pdf" id="btn-drawer-pdf" onclick="window.exportA4Document()">
+          <span>📄</span> Descarregar Mapa i Índex (A4)
         </button>
       </div>
     </div>
@@ -321,90 +317,6 @@
         </form>
       </div>
     </div>
-  <!-- ----------------------------------------------------------------------
-       MODAL 6: EXPORTAR PDF (A4 HORITZONTAL)
-       ---------------------------------------------------------------------- -->
-  <div class="modal-overlay" id="modal-pdf">
-    <div class="modal-card pdf-modal-card">
-      <div class="modal-header">
-        <h2 class="modal-title"><span>📄</span> Exportar PDF (A4 Horitzontal)</h2>
-        <button class="btn-close-modal">&times;</button>
-      </div>
-      <div class="modal-body pdf-modal-body">
-        <div class="pdf-modal-controls">
-          <p class="pdf-modal-desc">
-            Document oficial en format <strong>A4 Horitzontal</strong> preparat per imprimir o desar amb mapa, títol, data i índex.
-          </p>
-          <div class="pdf-modal-actions">
-            <button type="button" class="btn-pdf-download" id="btn-download-pdf-direct" onclick="window.downloadPdfA4()">
-              <span>📥</span> Descarregar PDF (A4)
-            </button>
-            <button type="button" class="btn-pdf-print" id="btn-print-pdf-direct" onclick="window.print()">
-              <span>🖨️</span> Imprimir
-            </button>
-          </div>
-        </div>
-
-        <!-- FULL A4 HORITZONTAL (DISSENY CUIDAT DE CARTELL) -->
-        <div class="pdf-sheet-wrapper">
-          <div class="pdf-sheet-a4-landscape" id="pdf-a4-sheet">
-            <!-- Capçalera del document A4 -->
-            <div class="pdf-header">
-              <div class="pdf-header-titles">
-                <div class="pdf-poster-tag">🎄 RUTA OFICIAL 2026</div>
-                <h1 class="pdf-main-title">RUTA DELS PESSEBRES</h1>
-                <div class="pdf-sub-title">SANT FELIU SASSERRA</div>
-              </div>
-              <div class="pdf-header-meta">
-                <div class="pdf-meta-pill">Total: <strong id="pdf-meta-total">19</strong> Pessebres</div>
-                <div class="pdf-meta-date" id="pdf-meta-date">Data d'exportació: --/--/----</div>
-                <div class="pdf-meta-web">eloibertranscb.github.io/RUTA-PESSEBRES-2026</div>
-              </div>
-            </div>
-
-            <!-- Cos: Mapa a l'esquerra, Índex a la dreta -->
-            <div class="pdf-body">
-              <!-- Columna Esquerra: Mapa -->
-              <div class="pdf-map-column">
-                <div class="pdf-map-frame" id="pdf-map-frame">
-                  <img id="pdf-map-snapshot" alt="Mapa de la Ruta" class="pdf-map-img">
-                  <div class="pdf-map-loading" id="pdf-map-loading">
-                    <span class="spinner">⏳</span>
-                    <span>Generant mapa d'alta resolució...</span>
-                  </div>
-                </div>
-                <div class="pdf-map-legend">
-                  <span class="pdf-legend-item"><span class="pdf-dot red"></span> Pessebre numerat (1 - 19)</span>
-                  <span class="pdf-legend-item">📍 Terme Municipal de Sant Feliu Sasserra</span>
-                </div>
-              </div>
-
-              <!-- Columna Dreta: Índex de Pessebres -->
-              <div class="pdf-index-column">
-                <div class="pdf-index-header">ÍNDEX DE PESSEBRES</div>
-                <div class="pdf-index-grid" id="pdf-index-grid">
-                  <!-- Generat dinàmicament per JS -->
-                </div>
-
-                <div class="pdf-info-box">
-                  <div class="pdf-info-title">ℹ️ INFORMACIÓ PRÀCTICA</div>
-                  <p class="pdf-info-text">
-                    La ruta es pot realitzar a peu o en BTT. Recomanem portar calçat adequat, aigua i respectar el medi natural i els pessebres.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Peu de pàgina A4 -->
-            <div class="pdf-footer">
-              <span>Ajuntament de Sant Feliu Sasserra • Comissió dels Pessebres</span>
-              <span>Bones Festes 2026! • Pàgina 1 de 1</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- TOAST NOTIFICACIÓ -->
   <div class="toast-notification" id="toast-notification"></div>
@@ -412,11 +324,8 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-  <!-- html2canvas (captura d'elements visuals i mapes) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <!-- html2pdf.js (exportació directa de PDF A4) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- jsPDF (generador directe de PDF lleuger i ultraràpid) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- Supabase Client JS (v2) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
