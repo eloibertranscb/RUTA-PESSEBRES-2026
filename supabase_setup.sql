@@ -1,10 +1,3 @@
--- ============================================================================
--- RUTA DELS PESSEBRES 2026 - ESQUEMA DE BASE DE DADES SUPABASE
--- Copia i enganxa tot aquest contingut a l'apartat 'SQL Editor' de Supabase
--- i fes clic a 'Run' (Executar).
--- ============================================================================
-
--- 1. TAULA D'USUARIS (USERS)
 CREATE TABLE IF NOT EXISTS public.users (
   id TEXT PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
@@ -13,7 +6,6 @@ CREATE TABLE IF NOT EXISTS public.users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. TAULA DE PESSEBRES (NATIVITY_POINTS)
 CREATE TABLE IF NOT EXISTS public.nativity_points (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -26,7 +18,6 @@ CREATE TABLE IF NOT EXISTS public.nativity_points (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. TAULA DE VISITES (VISITS)
 CREATE TABLE IF NOT EXISTS public.visits (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -35,17 +26,14 @@ CREATE TABLE IF NOT EXISTS public.visits (
   CONSTRAINT unique_user_point_visit UNIQUE (user_id, nativity_point_id)
 );
 
--- Índexs per a màxim rendiment
 CREATE INDEX IF NOT EXISTS idx_points_status ON public.nativity_points(status);
 CREATE INDEX IF NOT EXISTS idx_visits_user ON public.visits(user_id);
 CREATE INDEX IF NOT EXISTS idx_visits_point ON public.visits(nativity_point_id);
 
--- 4. HABILITAR ROW LEVEL SECURITY (RLS) I POLÍTIQUES PÚBLIQUES
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nativity_points ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.visits ENABLE ROW LEVEL SECURITY;
 
--- Polítiques per a USERS (Lectura i creació pública)
 DROP POLICY IF EXISTS "Permetre lectura pública d'usuaris" ON public.users;
 CREATE POLICY "Permetre lectura pública d'usuaris" ON public.users FOR SELECT USING (true);
 
@@ -55,7 +43,6 @@ CREATE POLICY "Permetre registre d'usuaris" ON public.users FOR INSERT WITH CHEC
 DROP POLICY IF EXISTS "Permetre actualitzar dades d'usuari" ON public.users;
 CREATE POLICY "Permetre actualitzar dades d'usuari" ON public.users FOR UPDATE USING (true);
 
--- Polítiques per a NATIVITY_POINTS (Lectura, proposta i edició)
 DROP POLICY IF EXISTS "Permetre lectura de pessebres" ON public.nativity_points;
 CREATE POLICY "Permetre lectura de pessebres" ON public.nativity_points FOR SELECT USING (true);
 
@@ -68,7 +55,6 @@ CREATE POLICY "Permetre actualitzar pessebres" ON public.nativity_points FOR UPD
 DROP POLICY IF EXISTS "Permetre eliminar pessebres" ON public.nativity_points;
 CREATE POLICY "Permetre eliminar pessebres" ON public.nativity_points FOR DELETE USING (true);
 
--- Polítiques per a VISITS (Marcar / Desmarcar pessebre com a visitat)
 DROP POLICY IF EXISTS "Permetre lectura de visites" ON public.visits;
 CREATE POLICY "Permetre lectura de visites" ON public.visits FOR SELECT USING (true);
 
@@ -78,11 +64,6 @@ CREATE POLICY "Permetre marcar visita" ON public.visits FOR INSERT WITH CHECK (t
 DROP POLICY IF EXISTS "Permetre desmarcar visita" ON public.visits;
 CREATE POLICY "Permetre desmarcar visita" ON public.visits FOR DELETE USING (true);
 
--- ============================================================================
--- DADES INICIALS (SEED DATA DE SANT FELIU SASSERRA)
--- ============================================================================
-
--- Usuaris inicials de prova
 INSERT INTO public.users (id, username, email, role) VALUES
   ('usr_admin', 'admin', 'admin@pessebres.cat', 'ADMIN'),
   ('usr_marc', 'Marc', 'marc@gmail.com', 'USER'),
@@ -93,7 +74,6 @@ INSERT INTO public.users (id, username, email, role) VALUES
   ('usr_miquel', 'Miquel', 'miquel@gmail.com', 'USER')
 ON CONFLICT (id) DO NOTHING;
 
--- 19 Pessebres oficials del cartell a Sant Feliu Sasserra
 INSERT INTO public.nativity_points (id, name, municipality, latitude, longitude, description, submitted_by, status) VALUES
   ('pt_1', 'EL DEL SENGLAR', 'Sant Feliu Sasserra', 41.9560, 2.0080, 'Pessebre a la solana de la muntanya.', 'Marc', 'APPROVED'),
   ('pt_2', 'LES GUILLERIES', 'Sant Feliu Sasserra', 41.9580, 2.0120, 'Ubicat al camí de les Guilleries.', 'Anna', 'APPROVED'),
@@ -116,7 +96,6 @@ INSERT INTO public.nativity_points (id, name, municipality, latitude, longitude,
   ('pt_19', 'L''OLIVERA DE CAL PRIM / CAL BASTÓ', 'Sant Feliu Sasserra', 41.9320, 2.0140, 'Al peu de l''olivera centenària.', 'Miquel', 'APPROVED')
 ON CONFLICT (id) DO NOTHING;
 
--- Visites de prova inicials
 INSERT INTO public.visits (id, user_id, nativity_point_id) VALUES
   ('v1', 'usr_marc', 'pt_1'),
   ('v2', 'usr_marc', 'pt_2'),
