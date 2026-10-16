@@ -61,12 +61,18 @@
       </button>
     </div>
 
-    <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA (SENSE FONS BLANC I SENSE SCROLL) -->
+    <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA (DESPLEGABLE A MÒBIL) -->
     <div class="floating-index-panel" id="floating-index-panel">
-      <div class="index-panel-header">ÍNDEX DE PESSEBRES</div>
-      <ul class="index-panel-list" id="index-panel-ul">
-        <!-- Generat dinàmicament per JS -->
-      </ul>
+      <button type="button" class="index-panel-toggle" id="index-panel-toggle" aria-expanded="false">
+        <span class="index-toggle-title">📋 ÍNDEX (<span id="index-count">19</span>)</span>
+        <span class="index-toggle-icon" id="index-toggle-arrow">▲</span>
+      </button>
+      <div class="index-panel-content" id="index-panel-content">
+        <div class="index-panel-header desktop-only">ÍNDEX DE PESSEBRES</div>
+        <ul class="index-panel-list" id="index-panel-ul">
+          <!-- Generat dinàmicament per JS -->
+        </ul>
+      </div>
     </div>
 
     <!-- BOTÓ VISIBLE: + AFEGEIX UN PESSEBRE (INFERIOR DRETA) -->

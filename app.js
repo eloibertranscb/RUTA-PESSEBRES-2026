@@ -181,10 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
         li.addEventListener('click', () => {
           map.flyTo([point.latitude, point.longitude], 16, { duration: 1 });
           marker.openPopup();
+          if (window.innerWidth <= 768) {
+            collapseIndexPanel();
+          }
         });
         indexUl.appendChild(li);
       }
     });
+
+    const indexCountEl = document.getElementById('index-count');
+    if (indexCountEl) indexCountEl.textContent = approvedPoints.length;
 
     if (approvedPoints.length === 0 && indexUl) {
       indexUl.innerHTML = '<li class="index-panel-empty">Cap pessebre aprovat encara</li>';
@@ -770,6 +776,56 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAdminPanel();
     }
   });
+
+  // 13. GESTIÓ DEL DESPLEGABLE DE L'ÍNDEX A MÒBIL
+  const indexPanel = document.getElementById('floating-index-panel');
+  const indexToggle = document.getElementById('index-panel-toggle');
+  const indexArrow = document.getElementById('index-toggle-arrow');
+
+  function collapseIndexPanel() {
+    if (indexPanel) {
+      indexPanel.classList.add('is-collapsed');
+      if (indexArrow) indexArrow.textContent = '▲';
+      if (indexToggle) indexToggle.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function expandIndexPanel() {
+    if (indexPanel) {
+      indexPanel.classList.remove('is-collapsed');
+      if (indexArrow) indexArrow.textContent = '▼';
+      if (indexToggle) indexToggle.setAttribute('aria-expanded', 'true');
+    }
+  }
+
+  function toggleIndexPanel() {
+    if (indexPanel) {
+      if (indexPanel.classList.contains('is-collapsed')) {
+        expandIndexPanel();
+      } else {
+        collapseIndexPanel();
+      }
+    }
+  }
+
+  if (indexToggle) {
+    indexToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleIndexPanel();
+    });
+  }
+
+  // Tancar el desplegable si es clica fora d'ell a mòbil
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && indexPanel && !indexPanel.contains(e.target)) {
+      collapseIndexPanel();
+    }
+  });
+
+  // A mòbil, per defecte l'índex comença plegat perquè es vegi el mapa
+  if (window.innerWidth <= 768) {
+    collapseIndexPanel();
+  }
 
   // ENGEGAR EL MAPA I LES VISTES
   initMap();
