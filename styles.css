@@ -1268,6 +1268,222 @@ body {
   border-bottom: 1px solid #d8e8df;
 }
 
+/* --- NOU DISSENY AUTH I MARCADORS NUMERATS --- */
+.btn-auth-pill {
+  background: linear-gradient(135deg, #7a1a12 0%, #522415 100%);
+  color: #ffffff !important;
+  border: 1.5px solid #d4af37 !important;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 14px rgba(122, 26, 18, 0.35);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-auth-pill:hover {
+  background: linear-gradient(135deg, #962118 0%, #682e1b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(122, 26, 18, 0.45);
+}
+
+.btn-logged-pill {
+  background: rgba(253, 251, 247, 0.95);
+  border: 1.5px solid #1b4332;
+  color: #1b4332;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.btn-logged-pill:hover {
+  border-color: #0d4726;
+  background: #ffffff;
+}
+
+.btn-logged-pill strong {
+  color: #522415;
+  font-size: 0.88rem;
+}
+
+.badge-visits {
+  background: #dcfce7;
+  color: #14532d;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.btn-logout-small {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 3px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.btn-logout-small:hover {
+  background: #fca5a5;
+}
+
+/* MARCADORS NUMERATS AL MAPA */
+.marker-pin-notvisited {
+  background: #b81414;
+  border: 2.5px solid #ffffff;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(184, 20, 20, 0.45);
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  user-select: none;
+}
+
+.marker-pin-visited {
+  background: #0d4726;
+  border: 2.5px solid #e5b869;
+  color: #e5b869;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(13, 71, 38, 0.55);
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  user-select: none;
+  gap: 2px;
+}
+
+.marker-check-icon {
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* POPUP BLOQUEJAT PER USUARIS NO REGISTRATS */
+.pessebre-popup-badge-num {
+  display: inline-block;
+  background: #7a1a12;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.pessebre-popup-lock-msg {
+  background: #fdf6ec;
+  border: 1.5px dashed #d4a373;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.pessebre-popup-lock-msg span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7a431d;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.btn-popup-open-auth {
+  background: linear-gradient(135deg, #7a1a12 0%, #522415 100%);
+  color: white;
+  border: 1px solid #d4af37;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.btn-popup-open-auth:hover {
+  background: #962118;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(122, 26, 18, 0.3);
+}
+
+.btn-visit-unmark {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #f87171;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.btn-visit-unmark:hover {
+  background: #fecaca;
+}
+
+/* ÍNDEX INFERIOR ESQUERRA NUMERAT */
+.index-item-num {
+  font-weight: 900;
+  color: #7a1a12;
+  min-width: 22px;
+  display: inline-block;
+}
+
+.index-item-name {
+  flex: 1;
+}
+
+.index-item-check {
+  color: #0d4726;
+  font-weight: 900;
+  font-size: 0.9rem;
+  margin-left: 4px;
+}
+
+.index-item.index-item-visited .index-item-name {
+  color: #0d4726;
+}
+
+.auth-help-note {
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #7a431d;
+  background: #fcf4e8;
+  border: 1px dashed #d4af37;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+  text-align: center;
+}
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .app-header {

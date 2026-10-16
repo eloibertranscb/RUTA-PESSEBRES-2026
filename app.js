@@ -9,59 +9,37 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSelectingMapLocation = false;
   let tempLocationMarker = null;
 
-  // 1. Icones segons si l'usuari hi ha anat o no
-  // NO HI HA ANAT: Vermell fort (#b81414) amb estrella blanca
-  const notVisitedMarkerIcon = L.divIcon({
-    className: 'custom-poster-marker-notvisited',
-    html: `
-      <div style="
-        background: #b81414;
-        border: 2.5px solid #ffffff;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(184, 20, 20, 0.4);
-        cursor: pointer;
-        font-size: 11px;
-      ">
-        <i class="fa-solid fa-asterisk"></i>
-      </div>
-    `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15]
-  });
-
-  // HI HA ANAT: Verd fosc (#0d4726) amb vora daurada i check
-  const visitedMarkerIcon = L.divIcon({
-    className: 'custom-poster-marker-visited',
-    html: `
-      <div style="
-        background: #0d4726;
-        border: 2.5px solid #e5b869;
-        color: #e5b869;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(13, 71, 38, 0.5);
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 900;
-      ">
-        ✓
-      </div>
-    `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15]
-  });
+  // 1. Icones numerades segons el pessebre i si l'usuari hi ha anat o no
+  function createNumberedMarkerIcon(number, isVisited) {
+    if (isVisited) {
+      // HI HA ANAT: Verd fosc (#0d4726) amb vora daurada i check + número
+      return L.divIcon({
+        className: 'custom-poster-marker-visited',
+        html: `
+          <div class="marker-pin-visited" title="Pessebre #${number} - Visitat">
+            <span class="marker-check-icon">✓</span>
+            <span>${number}</span>
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+    } else {
+      // NO HI HA ANAT: Vermell fort (#b81414) amb número clar i visible
+      return L.divIcon({
+        className: 'custom-poster-marker-notvisited',
+        html: `
+          <div class="marker-pin-notvisited" title="Pessebre #${number}">
+            ${number}
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+    }
+  }
 
   const markerMap = {};
 
@@ -116,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderApprovedMarkers();
   }
 
-  // 2. RENDERITZAR MARCADORS (VERMELL FORT SI NO HI HA ANAT, VERD FOSC SI HI HA ANAT)
+  // 2. RENDERITZAR MARCADORS NUMERATS I GESTIÓ D'ACCÉS
   function renderApprovedMarkers() {
     markersGroup.clearLayers();
     const approvedPoints = window.db.getApprovedPoints();
@@ -126,20 +104,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const indexUl = document.getElementById('index-panel-ul');
     if (indexUl) indexUl.innerHTML = '';
 
-    approvedPoints.forEach(point => {
+    approvedPoints.forEach((point, idx) => {
+      const number = idx + 1;
       const visitCount = window.db.getVisitCountForPoint(point.id);
       const isVisited = currentUser ? window.db.hasUserVisited(currentUser.id, point.id) : false;
 
-      // Si no hi ha anat -> Vermell fort. Si hi ha anat -> Verd fosc!
-      const iconToUse = isVisited ? visitedMarkerIcon : notVisitedMarkerIcon;
-
-      const marker = L.marker([point.latitude, point.longitude], { icon: iconToUse });
+      const markerIcon = createNumberedMarkerIcon(number, isVisited);
+      const marker = L.marker([point.latitude, point.longitude], { icon: markerIcon });
       bounds.push([point.latitude, point.longitude]);
       markerMap[point.id] = marker;
+
+      // SI NO ESTÀ REGISTRAT: NOU REQUISIT -> NOMÉS VEUEN EL PESSEBRE I EL NÚMERO, NO PODEN VALIDAR
+      let actionButtonsHtml = '';
+      if (!currentUser) {
+        actionButtonsHtml = `
+          <div class="pessebre-popup-lock-msg">
+            <span>🔒 Identifica't per poder validar aquest pessebre</span>
+            <button type="button" class="btn-popup-open-auth" onclick="window.openAuthModal()">
+              👤 REGISTRA'T / ENTRAR
+            </button>
+          </div>
+        `;
+      } else {
+        if (isVisited) {
+          actionButtonsHtml = `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <button class="btn-visit btn-visit-visited" style="pointer-events:none;">
+                ✓ HI HAS ANAT
+              </button>
+              <button class="btn-visit btn-visit-unmark" onclick="handleVisitClick('${point.id}')">
+                ✕ No hi he anat (Desmarcar)
+              </button>
+            </div>
+          `;
+        } else {
+          actionButtonsHtml = `
+            <button class="btn-visit btn-visit-not-visited" onclick="handleVisitClick('${point.id}')">
+              🎄 HI HE ANAT
+            </button>
+          `;
+        }
+      }
 
       const popupContent = `
         <div class="pessebre-popup">
           <div class="pessebre-popup-header">
+            <div class="pessebre-popup-badge-num">PESSEBRE #${number}</div>
             <h3 class="pessebre-popup-title">${escapeHTML(point.name)}</h3>
             <div class="pessebre-popup-muni">📍 ${escapeHTML(point.municipality)}</div>
           </div>
@@ -150,21 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="pessebre-popup-stats">
             👥 <span><strong>${visitCount}</strong> persones hi han anat</span>
           </div>
-          
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            ${isVisited ? `
-              <button class="btn-visit btn-visit-visited" onclick="handleVisitClick('${point.id}')">
-                ✓ HI HAS ANAT
-              </button>
-              <button class="btn-visit" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171;" onclick="handleVisitClick('${point.id}')">
-                ✕ NO HI HE ANAT (Desmarcar)
-              </button>
-            ` : `
-              <button class="btn-visit btn-visit-not-visited" onclick="handleVisitClick('${point.id}')">
-                🎄 HI HE ANAT
-              </button>
-            `}
-          </div>
+          ${actionButtonsHtml}
         </div>
       `;
 
@@ -174,8 +170,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (indexUl) {
         const li = document.createElement('li');
         li.className = 'index-item';
-        const bulletColor = isVisited ? '#0d4726' : '#b81414';
-        li.innerHTML = `<span class="index-item-bullet" style="background:${bulletColor};"></span> ${escapeHTML(point.name)}`;
+        if (isVisited) li.classList.add('index-item-visited');
+        li.innerHTML = `
+          <span class="index-item-num">${number}.</span>
+          <span class="index-item-name">${escapeHTML(point.name)}</span>
+          ${isVisited ? '<span class="index-item-check" title="Visitat">✓</span>' : ''}
+        `;
         li.addEventListener('click', () => {
           map.flyTo([point.latitude, point.longitude], 16, { duration: 1 });
           marker.openPopup();
@@ -200,8 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = window.db.getCurrentUser();
     
     if (!currentUser) {
-      showToast('⚠️ Has d\'iniciar sessió per marcar un pessebre!');
-      showModal('modal-profile');
+      showToast('⚠️ Has d\'iniciar sessió o registrar-te per marcar un pessebre!');
+      window.openAuthModal();
       return;
     }
 
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = window.db.getCurrentUser();
     if (!currentUser) {
       showToast("⚠️ Cal que t'identifiquis o et registris per proposar un nou pessebre!");
-      showModal('modal-profile');
+      window.openAuthModal();
       return;
     }
     const propInput = document.getElementById('add-proposer');
@@ -410,28 +410,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 9. IDENTIFICACIÓ DIRECTA (A VISTA, NOM I CONTRASENYA)
+  // 9. IDENTIFICACIÓ SENZILLA I GESTIÓ D'USUARI
+  window.openAuthModal = function() {
+    const currentUser = window.db.getCurrentUser();
+    renderUserProfile();
+    showModal('modal-profile');
+    if (!currentUser) {
+      setTimeout(() => {
+        const uInput = document.getElementById('auth-username');
+        if (uInput) uInput.focus();
+      }, 150);
+    }
+  };
+
   function renderUserProfile() {
     const currentUser = window.db.getCurrentUser();
-    const formDirectAuth = document.getElementById('form-direct-auth');
-    const directUserLogged = document.getElementById('direct-user-logged');
+    const btnOpenAuth = document.getElementById('btn-open-auth');
+    const userLoggedPill = document.getElementById('user-logged-pill');
+    const loggedUserName = document.getElementById('logged-user-name');
+    const loggedUserVisits = document.getElementById('logged-user-visits');
     const btnOpenAdmin = document.getElementById('btn-open-admin');
+    const profileViewLogged = document.getElementById('profile-view-logged');
+    const profileViewAuth = document.getElementById('profile-view-auth');
 
     if (currentUser) {
-      if (formDirectAuth) formDirectAuth.style.display = 'none';
-      if (directUserLogged) directUserLogged.style.display = 'flex';
+      if (btnOpenAuth) btnOpenAuth.style.display = 'none';
+      if (userLoggedPill) userLoggedPill.style.display = 'flex';
+      if (loggedUserName) loggedUserName.textContent = currentUser.username;
 
-      const nameEl = document.getElementById('direct-logged-name');
-      if (nameEl) nameEl.textContent = currentUser.username;
+      const userVisits = window.db.getUserVisits(currentUser.id);
+      const approvedCount = window.db.getApprovedPoints().length;
+      if (loggedUserVisits) {
+        loggedUserVisits.textContent = `${userVisits.length} / ${approvedCount} visitats`;
+      }
 
-      const statsEl = document.getElementById('direct-logged-stats');
-      if (statsEl) {
-        const userVisits = window.db.getUserVisits(currentUser.id);
-        statsEl.textContent = `${userVisits.length} visitats`;
+      // Vistes del modal
+      if (profileViewLogged) profileViewLogged.style.display = 'block';
+      if (profileViewAuth) profileViewAuth.style.display = 'none';
+
+      // Omplir dades del perfil dins del modal
+      const profileName = document.getElementById('profile-username');
+      if (profileName) profileName.textContent = currentUser.username;
+
+      const profileEmail = document.getElementById('profile-email');
+      if (profileEmail) profileEmail.textContent = currentUser.email || '';
+
+      const visitedCountText = document.getElementById('profile-visited-count-text');
+      if (visitedCountText) {
+        visitedCountText.textContent = `${userVisits.length} de ${approvedCount} pessebres visitats`;
+      }
+
+      // Ranking text
+      const leaderboard = window.db.getLeaderboard();
+      const myRank = leaderboard.find(u => u.id === currentUser.id);
+      const rankEl = document.getElementById('profile-rank-text');
+      if (rankEl) {
+        rankEl.textContent = myRank ? `#${myRank.rank} al rànquing` : 'Sense rànquing';
+      }
+
+      // Llista de visitats al modal
+      const visitedUl = document.getElementById('profile-visited-ul');
+      if (visitedUl) {
+        visitedUl.innerHTML = '';
+        if (userVisits.length === 0) {
+          visitedUl.innerHTML = '<li style="padding:10px; color:#888; font-size:0.85rem; text-align:center;">Encara no has visitat cap pessebre. Ves al mapa i clica a "HI HE ANAT"!</li>';
+        } else {
+          userVisits.forEach(v => {
+            const pt = window.db.getPointById(v.nativity_point_id);
+            if (pt) {
+              const li = document.createElement('li');
+              li.className = 'visited-list-item';
+              li.innerHTML = `
+                <div>
+                  <strong>🎄 ${escapeHTML(pt.name)}</strong>
+                  <div style="font-size:0.75rem; color:#666;">${escapeHTML(pt.municipality)}</div>
+                </div>
+                <span style="font-size:0.75rem; color:#0d4726; font-weight:800;">✓ Visitat</span>
+              `;
+              visitedUl.appendChild(li);
+            }
+          });
+        }
       }
 
       // Mostrar botó Admin ÚNICAMENT a l'usuari admin autoritzat
-      if (currentUser.role === 'ADMIN' || currentUser.username.toLowerCase() === 'admin') {
+      const isAdmin = currentUser.role === 'ADMIN' || currentUser.username.toLowerCase() === 'admin';
+      if (isAdmin) {
         if (btnOpenAdmin) {
           btnOpenAdmin.style.display = 'flex';
           const pendingCount = window.db.getPendingPoints().length;
@@ -445,21 +509,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnOpenAdmin) btnOpenAdmin.style.display = 'none';
       }
     } else {
-      if (formDirectAuth) formDirectAuth.style.display = 'flex';
-      if (directUserLogged) directUserLogged.style.display = 'none';
+      if (btnOpenAuth) btnOpenAuth.style.display = 'flex';
+      if (userLoggedPill) userLoggedPill.style.display = 'none';
       if (btnOpenAdmin) btnOpenAdmin.style.display = 'none';
+
+      if (profileViewLogged) profileViewLogged.style.display = 'none';
+      if (profileViewAuth) profileViewAuth.style.display = 'block';
     }
   }
 
-  // SUBMIT ENTRAR / REGISTRAR-SE DIRECTE (A VISTA)
-  const formDirectAuth = document.getElementById('form-direct-auth');
-  if (formDirectAuth) {
-    formDirectAuth.addEventListener('submit', async (e) => {
+  // BOTÓ PER OBRIR IDENTIFICACIÓ / REGISTRE
+  const btnOpenAuth = document.getElementById('btn-open-auth');
+  if (btnOpenAuth) {
+    btnOpenAuth.addEventListener('click', window.openAuthModal);
+  }
+
+  // CLIC A LA PÍNDOLA DE L'USUARI LOGUEJAT (PERFIL)
+  const userLoggedPill = document.getElementById('user-logged-pill');
+  if (userLoggedPill) {
+    userLoggedPill.addEventListener('click', (e) => {
+      if (e.target.id === 'btn-direct-logout') return;
+      showModal('modal-profile');
+    });
+  }
+
+  // FORMULARI D'AUTENTICACIÓ / REGISTRE UNIFICAT
+  const formUnifiedAuth = document.getElementById('form-unified-auth');
+  if (formUnifiedAuth) {
+    formUnifiedAuth.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const u = document.getElementById('direct-username').value;
-      const p = document.getElementById('direct-password').value;
+      const u = document.getElementById('auth-username').value;
+      const p = document.getElementById('auth-password').value;
       try {
         const res = await window.db.loginOrRegisterDirect(u, p);
+        hideAllModals();
         if (res.isAdmin) {
           showToast("⚙️ Sessió d'Administrador iniciada!");
         } else if (res.isNew) {
@@ -467,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           showToast(`👋 Benvingut/da de nou, ${res.user.username}!`);
         }
-        formDirectAuth.reset();
+        formUnifiedAuth.reset();
         renderUserProfile();
         renderApprovedMarkers();
         renderRankingTable();
@@ -478,16 +561,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // BOTÓ SORTIR DIRECTE
+  // TANCAR SESSIÓ
+  function doLogout() {
+    window.db.logout();
+    hideAllModals();
+    showToast('👋 Sessió tancada.');
+    renderUserProfile();
+    renderApprovedMarkers();
+    renderRankingTable();
+    updateTopStats();
+  }
+
   const btnDirectLogout = document.getElementById('btn-direct-logout');
   if (btnDirectLogout) {
-    btnDirectLogout.addEventListener('click', () => {
-      window.db.logout();
-      showToast('👋 Sessió tancada.');
-      renderUserProfile();
-      renderApprovedMarkers();
-      renderRankingTable();
+    btnDirectLogout.addEventListener('click', (e) => {
+      e.stopPropagation();
+      doLogout();
     });
+  }
+
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', doLogout);
   }
 
   // 10. PANEL D'ADMINISTRACIÓ (ACCEPTAR / REBUTJAR / EDITAR / ELIMINAR)
