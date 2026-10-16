@@ -25,38 +25,150 @@
   --radius-lg: 2px;
 }
 
-* {
-  box-sizing: border-box;
+html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-dark-green);
+  background-color: #e8dbc5;
   color: var(--text-dark);
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 /* --------------------------------------------------------------------------
    MAP CONTAINER & FLOATING LAYOUT (ESTIL POSTER DIBUIXAT)
    -------------------------------------------------------------------------- */
 .main-content {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 #map {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
   background: #e8dbc5;
+}
+
+/* CAIXA D'IDENTIFICACIÓ DIRECTA (A VISTA) */
+.floating-auth-direct {
+  display: flex;
+  align-items: center;
+}
+
+.direct-auth-form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.direct-auth-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(253, 251, 247, 0.95);
+  border: 1.5px solid #522415;
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+}
+
+.direct-input {
+  border: 1px solid #d4c3b3;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: #3a1e12;
+  background: white;
+  width: 130px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.direct-input:focus {
+  border-color: #8b1a1a;
+  box-shadow: 0 0 0 2px rgba(139, 26, 26, 0.15);
+}
+
+.btn-direct-submit {
+  background: linear-gradient(135deg, #7a1a12 0%, #522415 100%);
+  color: #fdfbf7;
+  border: 1px solid #522415;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-direct-submit:hover {
+  background: #962118;
+  transform: translateY(-1px);
+}
+
+.direct-logged-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(253, 251, 247, 0.95);
+  border: 1.5px solid #522415;
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  font-size: 0.85rem;
+}
+
+.direct-logged-avatar {
+  font-size: 1rem;
+}
+
+.direct-logged-name {
+  font-weight: 800;
+  color: #522415;
+}
+
+.direct-logged-stats {
+  font-size: 0.78rem;
+  color: #14532d;
+  font-weight: 800;
+  background: #dcfce7;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-direct-logout {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background 0.2s;
+}
+
+.btn-direct-logout:hover {
+  background: #fecaca;
 }
 
 /* TÍTOL FLOTANT A LA PART SUPERIOR DRETA (SENSE FONS) */

@@ -29,6 +29,24 @@
 
     <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
     <div class="floating-top-actions">
+      <!-- FORMULARI DIRECTE NOM I CONTRASENYA (A VISTA) -->
+      <div class="floating-auth-direct" id="floating-auth-direct">
+        <form id="form-direct-auth" class="direct-auth-form">
+          <div class="direct-auth-inputs">
+            <input type="text" id="direct-username" class="direct-input" placeholder="El teu nom (o admin)" required autocomplete="username">
+            <input type="password" id="direct-password" class="direct-input" placeholder="Contrasenya" required autocomplete="current-password">
+            <button type="submit" class="btn-direct-submit">Entrar / Registrar-se</button>
+          </div>
+        </form>
+
+        <div id="direct-user-logged" class="direct-logged-bar" style="display: none;">
+          <span class="direct-logged-avatar">👤</span>
+          <span class="direct-logged-name" id="direct-logged-name">Marc</span>
+          <span class="direct-logged-stats" id="direct-logged-stats">0 visitats</span>
+          <button type="button" class="btn-direct-logout" id="btn-direct-logout" title="Tancar sessió">Sortir</button>
+        </div>
+      </div>
+
       <div class="top-stats-container">
         <div class="stat-pill" title="Pessebres aprovats">
           <span>🎄</span> <span id="stat-points">0</span>
@@ -41,10 +59,6 @@
 
       <button class="btn-header" id="btn-open-ranking">
         <span>🏆</span> RÀNQUING
-      </button>
-
-      <button class="btn-header" id="btn-open-profile">
-        <span>👤</span> <span id="header-user-label">Perfil</span>
       </button>
 
       <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">

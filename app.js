@@ -81,6 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     markersGroup = L.layerGroup().addTo(map);
 
+    setTimeout(() => {
+      if (map) map.invalidateSize();
+    }, 250);
+
     // Event de clic al mapa
     map.on('click', (e) => {
       if (isSelectingMapLocation) {
@@ -406,115 +410,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 9. PERFIL DE L'USUARI I AUTHENTICATION (NOM I CONTRASENYA)
-  const btnOpenProfile = document.getElementById('btn-open-profile');
-  const headerUserLabel = document.getElementById('header-user-label');
-
-  btnOpenProfile.addEventListener('click', () => {
-    renderUserProfile();
-    showModal('modal-profile');
-  });
-
+  // 9. IDENTIFICACIÓ DIRECTA (A VISTA, NOM I CONTRASENYA)
   function renderUserProfile() {
     const currentUser = window.db.getCurrentUser();
-    const profileLoggedView = document.getElementById('profile-view-logged');
-    const profileAuthView = document.getElementById('profile-view-auth');
+    const formDirectAuth = document.getElementById('form-direct-auth');
+    const directUserLogged = document.getElementById('direct-user-logged');
     const btnOpenAdmin = document.getElementById('btn-open-admin');
 
     if (currentUser) {
-      headerUserLabel.textContent = currentUser.username;
-      profileLoggedView.style.display = 'block';
-      profileAuthView.style.display = 'none';
+      if (formDirectAuth) formDirectAuth.style.display = 'none';
+      if (directUserLogged) directUserLogged.style.display = 'flex';
 
-      document.getElementById('profile-username').textContent = `@${currentUser.username}`;
-      document.getElementById('profile-email').textContent = currentUser.email || '';
+      const nameEl = document.getElementById('direct-logged-name');
+      if (nameEl) nameEl.textContent = currentUser.username;
+
+      const statsEl = document.getElementById('direct-logged-stats');
+      if (statsEl) {
+        const userVisits = window.db.getUserVisits(currentUser.id);
+        statsEl.textContent = `${userVisits.length} visitats`;
+      }
 
       // Mostrar botó Admin ÚNICAMENT a l'usuari admin autoritzat
       if (currentUser.role === 'ADMIN' || currentUser.username.toLowerCase() === 'admin') {
-        btnOpenAdmin.style.display = 'flex';
-        const pendingCount = window.db.getPendingPoints().length;
-        const badge = document.getElementById('admin-pending-badge');
-        if (badge) {
-          badge.textContent = pendingCount;
-          badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        if (btnOpenAdmin) {
+          btnOpenAdmin.style.display = 'flex';
+          const pendingCount = window.db.getPendingPoints().length;
+          const badge = document.getElementById('admin-pending-badge');
+          if (badge) {
+            badge.textContent = pendingCount;
+            badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+          }
         }
       } else {
-        btnOpenAdmin.style.display = 'none';
-      }
-
-      // Visites i rànquing
-      const userVisits = window.db.getUserVisits(currentUser.id);
-      const userRank = window.db.getUserRank(currentUser.id);
-
-      document.getElementById('profile-rank-text').textContent = currentUser.role === 'ADMIN' ? '⭐ Administrador' : `Posició al rànquing: #${userRank || '-'}`;
-      document.getElementById('profile-visited-count-text').textContent = `🎄 ${userVisits.length} pessebres visitats`;
-
-      const ul = document.getElementById('profile-visited-ul');
-      ul.innerHTML = '';
-
-      if (userVisits.length === 0) {
-        ul.innerHTML = `<li style="font-size:0.85rem; color:var(--text-muted); padding:8px 0;">Encara no has marcat cap pessebre com a visitat.</li>`;
-      } else {
-        userVisits.forEach(v => {
-          const pt = window.db.getPointById(v.nativity_point_id);
-          if (pt) {
-            const li = document.createElement('li');
-            li.className = 'visited-item';
-            li.innerHTML = `
-              <div>
-                <strong>${escapeHTML(pt.name)}</strong>
-                <div style="font-size:0.78rem; color:var(--text-muted);">${escapeHTML(pt.municipality)}</div>
-              </div>
-              <span style="font-size:0.8rem; color:var(--accent-green-bright); font-weight:700;">✓ Visitat</span>
-            `;
-            ul.appendChild(li);
-          }
-        });
+        if (btnOpenAdmin) btnOpenAdmin.style.display = 'none';
       }
     } else {
-      headerUserLabel.textContent = "Registra't / Entrar";
-      btnOpenAdmin.style.display = 'none';
-      profileLoggedView.style.display = 'none';
-      profileAuthView.style.display = 'block';
+      if (formDirectAuth) formDirectAuth.style.display = 'flex';
+      if (directUserLogged) directUserLogged.style.display = 'none';
+      if (btnOpenAdmin) btnOpenAdmin.style.display = 'none';
     }
   }
 
-  // PESTANYES LOGIN / REGISTRE
-  const tabBtnLogin = document.getElementById('tab-btn-login');
-  const tabBtnRegister = document.getElementById('tab-btn-register');
-  const formLoginUser = document.getElementById('form-login-user');
-  const formRegisterUser = document.getElementById('form-register-user');
-
-  if (tabBtnLogin && tabBtnRegister) {
-    tabBtnLogin.addEventListener('click', () => {
-      tabBtnLogin.classList.add('active');
-      tabBtnRegister.classList.remove('active');
-      formLoginUser.style.display = 'block';
-      formRegisterUser.style.display = 'none';
-    });
-
-    tabBtnRegister.addEventListener('click', () => {
-      tabBtnRegister.classList.add('active');
-      tabBtnLogin.classList.remove('active');
-      formRegisterUser.style.display = 'block';
-      formLoginUser.style.display = 'none';
-    });
-  }
-
-  // SUBMIT INICI DE SESSIÓ (USUARIS I ADMIN)
-  if (formLoginUser) {
-    formLoginUser.addEventListener('submit', async (e) => {
+  // SUBMIT ENTRAR / REGISTRAR-SE DIRECTE (A VISTA)
+  const formDirectAuth = document.getElementById('form-direct-auth');
+  if (formDirectAuth) {
+    formDirectAuth.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const u = document.getElementById('login-username').value;
-      const p = document.getElementById('login-password').value;
+      const u = document.getElementById('direct-username').value;
+      const p = document.getElementById('direct-password').value;
       try {
-        const user = await window.db.loginUser(u, p);
-        if (user.role === 'ADMIN') {
-          showToast(`⚙️ Benvingut/da, Administrador!`);
+        const res = await window.db.loginOrRegisterDirect(u, p);
+        if (res.isAdmin) {
+          showToast("⚙️ Sessió d'Administrador iniciada!");
+        } else if (res.isNew) {
+          showToast(`🎉 Benvingut/da, ${res.user.username}! Compte creat correctament.`);
         } else {
-          showToast(`👋 Benvingut/da de nou, ${user.username}!`);
+          showToast(`👋 Benvingut/da de nou, ${res.user.username}!`);
         }
-        hideAllModals();
+        formDirectAuth.reset();
         renderUserProfile();
         renderApprovedMarkers();
         renderRankingTable();
@@ -525,44 +478,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // SUBMIT REGISTRE DE NOU USUARI
-  if (formRegisterUser) {
-    formRegisterUser.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const u = document.getElementById('reg-username').value;
-      const p = document.getElementById('reg-password').value;
-      try {
-        const user = await window.db.registerUser(u, p);
-        showToast(`🎉 Compte creat! Benvingut/da a la Ruta dels Pessebres, ${user.username}!`);
-        hideAllModals();
-        renderUserProfile();
-        renderApprovedMarkers();
-        renderRankingTable();
-        updateTopStats();
-      } catch (err) {
-        showToast('⚠️ ' + err.message);
-      }
+  // BOTÓ SORTIR DIRECTE
+  const btnDirectLogout = document.getElementById('btn-direct-logout');
+  if (btnDirectLogout) {
+    btnDirectLogout.addEventListener('click', () => {
+      window.db.logout();
+      showToast('👋 Sessió tancada.');
+      renderUserProfile();
+      renderApprovedMarkers();
+      renderRankingTable();
     });
   }
-
-  // LOGOUT I CANVI D'USUARI
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    window.db.logout();
-    showToast('👋 Sessió tancada.');
-    renderUserProfile();
-    renderApprovedMarkers();
-    renderRankingTable();
-  });
-
-  document.getElementById('btn-switch-user').addEventListener('click', () => {
-    window.db.logout();
-    renderUserProfile();
-  });
-
-  document.getElementById('btn-switch-user').addEventListener('click', () => {
-    window.db.logout();
-    renderUserProfile();
-  });
 
   // 10. PANEL D'ADMINISTRACIÓ (ACCEPTAR / REBUTJAR / EDITAR / ELIMINAR)
   const btnOpenAdmin = document.getElementById('btn-open-admin');
