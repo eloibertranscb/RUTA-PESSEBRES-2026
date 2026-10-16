@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RUTA DELS PESSEBRES 2026</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- CONTINGUT PRINCIPAL / MAPA A PANTALLA COMPLETA -->
+  <main class="main-content">
+    <div id="map"></div>
+
+    <!-- TÍTOL FLOTANT A LA PART SUPERIOR DRETA (SENSE FONS, ESTIL POSTER) -->
+    <div class="floating-title-overlay">
+      <div class="title-line-1">RUTA DELS</div>
+      <div class="title-line-2">PESSEBRES</div>
+      <div class="title-line-3">2026</div>
+    </div>
+
+    <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
+    <div class="floating-top-actions">
+      <div class="top-stats-container">
+        <div class="stat-pill" title="Pessebres aprovats">
+          <span>🎄</span> <span id="stat-points">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill" title="Participants">
+          <span>👥</span> <span id="stat-users">0</span>
+        </div>
+      </div>
+
+      <button class="btn-header" id="btn-open-ranking">
+        <span>🏆</span> RÀNQUING
+      </button>
+
+      <button class="btn-header" id="btn-open-profile">
+        <span>👤</span> <span id="header-user-label">Perfil</span>
+      </button>
+
+      <button class="btn-header btn-admin-pill" id="btn-open-admin">
+        <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
+      </button>
+    </div>
+
+    <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA -->
+    <div class="floating-index-panel">
+      <div class="index-panel-header">ÍNDEX DE PESSEBRES</div>
+      <ul class="index-panel-list" id="index-panel-ul">
+        <!-- Generat dinàmicament per JS -->
+      </ul>
+    </div>
+
+    <!-- BOTÓ VISIBLE: + AFEGEIX UN PESSEBRE (INFERIOR DRETA) -->
+    <button class="btn-floating-add" id="btn-open-add-pessebre">
+      <span class="plus-icon">+</span> AFEGEIX UN PESSEBRE
+    </button>
+
+    <!-- BANNER INFORMATIU QUAN S'ESTÀ SELECCIONANT LA UBICACIÓ AL MAPA -->
+    <div class="map-selection-banner" id="map-selection-banner" style="display: none;">
+      <span>📍 Fes clic sobre el mapa per establir la ubicació del pessebre</span>
+      <button class="btn-cancel-select" id="btn-cancel-map-select">Cancel·lar</button>
+    </div>
+  </main>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 1: AFEGIR PESSEBRE
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-add-pessebre">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>🎄</span> Afegeix un Pessebre</h2>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-pessebre">
+          <div class="form-group">
+            <label class="form-label" for="add-name">Nom del pessebre *</label>
+            <input type="text" id="add-name" class="form-input" placeholder="Ex. Pessebre Vivent de Vic" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="add-municipality">Municipi *</label>
+            <input type="text" id="add-municipality" class="form-input" placeholder="Ex. Vic" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ubicació / Coordenades *</label>
+            <div class="location-picker-box">
+              <input type="text" id="add-coords-display" class="form-input" placeholder="Latitud, Longitud" readonly required>
+              <button type="button" class="btn-pick-location" id="btn-select-map-location">
+                📍 Triar al mapa
+              </button>
+            </div>
+            <input type="hidden" id="add-lat">
+            <input type="hidden" id="add-lng">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="add-description">Descripció opcional</label>
+            <textarea id="add-description" class="form-textarea" rows="3" placeholder="Horaris, informació d'interès, característiques..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="add-proposer">Nom de l'usuari que el proposa *</label>
+            <input type="text" id="add-proposer" class="form-input" placeholder="El teu nom d'usuari" required>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary btn-close-modal">Cancel·lar</button>
+            <button type="submit" class="btn-primary">Enviar Proposta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 2: RÀNQUING
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-ranking">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>🏆</span> Rànquing de Participants</h2>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-tab-nav" style="margin-bottom: 12px;">
+          <button type="button" class="admin-tab-btn active" id="ranking-tab-visited">🏆 Més Visitats</button>
+          <button type="button" class="admin-tab-btn" id="ranking-tab-created">🎄 Més Creats</button>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;" id="ranking-desc">
+          Classificació ordenada automàticament per pessebres visitats.
+        </p>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>Posició</th>
+              <th>Usuari</th>
+              <th id="ranking-header-stat">Pessebres visitats</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-tbody">
+            <!-- Omplert dinàmicament per JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 3: PERFIL DE L'USUARI I LOGIN FACIL / GOOGLE
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-profile">
+    <div class="modal-card auth-modal-card">
+
+      <!-- VISTA PERFIL LOGUEJAT -->
+      <div id="profile-view-logged" style="display: none;">
+        <div class="auth-profile-banner">
+          <button class="btn-close-modal auth-close-btn">&times;</button>
+          <div class="auth-avatar-circle">🎅</div>
+          <div class="auth-profile-name" id="profile-username">Marc</div>
+          <div class="auth-profile-sub" id="profile-email"></div>
+          <div class="auth-rank-chip" id="profile-rank-text">#1 al rànquing</div>
+        </div>
+        <div class="auth-profile-body">
+          <div class="auth-visited-header" id="profile-visited-count-text">0 pessebres visitats</div>
+          <ul class="visited-list" id="profile-visited-ul"></ul>
+          <div class="auth-profile-actions">
+            <button type="button" class="auth-btn-switch" id="btn-switch-user">Canviar d'usuari</button>
+            <button type="button" class="auth-btn-logout" id="btn-logout">Tancar sessió</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA IDENTIFICACIÓ FÀCIL / GOOGLE -->
+      <div id="profile-view-auth">
+        <div class="auth-welcome-banner">
+          <button class="btn-close-modal auth-close-btn">&times;</button>
+          <div class="auth-welcome-icon">🎄</div>
+          <h2 class="auth-welcome-title">Benvingut/da</h2>
+          <p class="auth-welcome-sub">Identifica't per marcar els pessebres que visites i sortir al rànquing.</p>
+        </div>
+
+        <div class="auth-form-body">
+          <!-- BOTÓ GOOGLE LOGIN -->
+          <button type="button" id="btn-google-login" class="auth-btn-google">
+            <svg width="20" height="20" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.617z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+            </svg>
+            Continua amb Google
+          </button>
+
+          <div class="auth-divider">
+            <span>o amb el teu nom</span>
+          </div>
+
+          <!-- FORMULARI SIMPLE NOM I COGNOM -->
+          <form id="form-quick-user">
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="quick-fullname">Nom i Cognoms</label>
+              <input type="text" id="quick-fullname" class="auth-input" placeholder="Ex. Eloi Bertrans" required autocomplete="name">
+            </div>
+            <button type="submit" class="auth-btn-primary">Entrar al Rànquing →</button>
+          </form>
+
+          <!-- OPCIÓ PER ADMINS -->
+          <div class="auth-admin-link-wrap">
+            <a href="#" id="link-show-admin-login" class="auth-admin-link">Ets administrador?</a>
+          </div>
+
+          <form id="form-admin-login" style="display:none;" class="auth-admin-form">
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="admin-pass">Contrasenya d'administrador</label>
+              <input type="password" id="admin-pass" class="auth-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="auth-btn-primary">Entrar com a Admin</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 4: PANEL D'ADMINISTRADOR
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-admin">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>⚙️</span> Panell d'Administració</h2>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-tab-nav">
+          <button class="admin-tab-btn active" id="admin-tab-pending">Pendents d'Aprovació (<span id="count-pending">0</span>)</button>
+          <button class="admin-tab-btn" id="admin-tab-approved">Tots els Pessebres (<span id="count-all">0</span>)</button>
+        </div>
+
+        <!-- SECCIÓ PENDENTS -->
+        <div id="admin-view-pending">
+          <div id="admin-pending-container">
+            <!-- Omplert dinàmicament per JS -->
+          </div>
+        </div>
+
+        <!-- SECCIÓ TOTS / APROVATS -->
+        <div id="admin-view-approved" style="display: none;">
+          <div id="admin-approved-container">
+            <!-- Omplert dinàmicament per JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 5: EDITAR PESSEBRE (ADMIN)
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-edit-pessebre">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>✏️</span> Editar Pessebre</h2>
+        <button class="btn-close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-pessebre">
+          <input type="hidden" id="edit-id">
+          <div class="form-group">
+            <label class="form-label" for="edit-name">Nom del pessebre *</label>
+            <input type="text" id="edit-name" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-municipality">Municipi *</label>
+            <input type="text" id="edit-municipality" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Coordenades (Latitud, Longitud) *</label>
+            <div style="display:flex; gap:10px;">
+              <input type="number" step="any" id="edit-lat" class="form-input" placeholder="Latitud" required>
+              <input type="number" step="any" id="edit-lng" class="form-input" placeholder="Longitud" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-description">Descripció</label>
+            <textarea id="edit-description" class="form-textarea" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-status">Estat *</label>
+            <select id="edit-status" class="form-select">
+              <option value="APPROVED">APPROVED (Aprovat)</option>
+              <option value="PENDING">PENDING (Pendent)</option>
+              <option value="REJECTED">REJECTED (Rebutjat)</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary btn-close-modal">Cancel·lar</button>
+            <button type="submit" class="btn-primary">Desar Canvis</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICACIÓ -->
+  <div class="toast-notification" id="toast-notification"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Supabase Client JS (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Configuració i Base de Dades -->
+  <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
