@@ -871,14 +871,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 14. EXPORTACIÓ DIRECTA DEL CARTELL I MAPA A4 (ULTRA RÀPID I SENSE PETAR)
-  window.exportA4Document = function() {
+  // 14. EXPORTACIÓ DIRECTA DEL CARTELL I MAPA A4 (ULTRA RÀPID I FIABLE)
+  window.exportA4Document = async function() {
     const btn = document.getElementById('btn-drawer-pdf');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳</span> Generant A4...';
+      btn.innerHTML = '<span>⏳</span> Carregant mapa i generant...';
     }
-    showToast('⏳ Generant document A4 oficial...');
+    showToast('⏳ Descarregant mapa i preparant document A4...');
 
     const points = window.db.getApprovedPoints();
     const today = new Date();
@@ -893,300 +893,345 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.height = H;
     const ctx = canvas.getContext('2d');
 
-    // Bounding box del terme de Sant Feliu Sasserra
-    const minLng = 2.000, maxLng = 2.038;
-    const minLat = 41.928, maxLat = 41.963;
+    // Bounding box dinàmic que envolta tots els pessebres de Sant Feliu Sasserra
+    let minLng = 2.000, maxLng = 2.038;
+    let minLat = 41.928, maxLat = 41.963;
+
+    if (points.length > 0) {
+      const lats = points.map(p => Number(p.latitude)).filter(n => !isNaN(n));
+      const lngs = points.map(p => Number(p.longitude)).filter(n => !isNaN(n));
+      if (lats.length > 0 && lngs.length > 0) {
+        const pMinLat = Math.min(...lats);
+        const pMaxLat = Math.max(...lats);
+        const pMinLng = Math.min(...lngs);
+        const pMaxLng = Math.max(...lngs);
+
+        const latMargin = Math.max((pMaxLat - pMinLat) * 0.12, 0.005);
+        const lngMargin = Math.max((pMaxLng - pMinLng) * 0.12, 0.005);
+
+        minLat = Number((pMinLat - latMargin).toFixed(4));
+        maxLat = Number((pMaxLat + latMargin).toFixed(4));
+        minLng = Number((pMinLng - lngMargin).toFixed(4));
+        maxLng = Number((pMaxLng + lngMargin).toFixed(4));
+      }
+    }
+
     const mapW = 1380;
     const mapH = 1260;
     const mapX = 75;
     const mapY = 260;
 
-    const mapUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/export?bbox=${minLng},${minLat},${maxLng},${maxLat}&bboxSR=4326&imageSR=4326&size=${mapW},${mapH}&format=jpg&f=image`;
+    // Descarreguem la imatge del mapa mitjançant fetch per garantir que el canvas no quedi buit
+    async function loadMap() {
+      const primaryUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/export?bbox=${minLng},${minLat},${maxLng},${maxLat}&bboxSR=4326&imageSR=4326&size=960,880&format=jpg&f=image&_t=${Date.now()}`;
+      const fallbackUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/export?bbox=${minLng},${minLat},${maxLng},${maxLat}&bboxSR=4326&imageSR=4326&size=800,600&format=jpg&f=image`;
 
-    const mapImg = new Image();
-    mapImg.crossOrigin = 'anonymous';
-
-    const renderPosterAndDownload = (imgReady) => {
-      try {
-        // 1. Fons i marc decoratiu
-        ctx.fillStyle = '#fffdfa';
-        ctx.fillRect(0, 0, W, H);
-
-        // Doble marc cartell
-        ctx.strokeStyle = '#7a1a12';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(30, 30, W - 60, H - 60);
-
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(45, 45, W - 90, H - 90);
-
-        // 2. Capçalera del cartell
-        ctx.fillStyle = '#7a1a12';
-        ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText('🎄 RUTA OFICIAL 2026 • GUIA OFICIAL', 75, 105);
-
-        ctx.fillStyle = '#522415';
-        ctx.font = '900 58px "Bodoni Moda", "Playfair Display", Georgia, serif';
-        ctx.fillText('RUTA DELS PESSEBRES', 75, 170);
-
-        ctx.fillStyle = '#7a1a12';
-        ctx.font = '900 28px "Bodoni Moda", "Playfair Display", Georgia, serif';
-        ctx.fillText('SANT FELIU SASSERRA', 75, 210);
-
-        // Meta dret
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#522415';
-        ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(`Total: ${points.length} Pessebres`, W - 75, 115);
-
-        ctx.fillStyle = '#7a6555';
-        ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(`Data d'exportació: ${dateFormatted}`, W - 75, 155);
-
-        ctx.fillStyle = '#a07855';
-        ctx.font = '18px monospace';
-        ctx.fillText('eloibertranscb.github.io/RUTA-PESSEBRES-2026', W - 75, 195);
-
-        // Línia divisòria capçalera
-        ctx.strokeStyle = '#7a1a12';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(75, 235);
-        ctx.lineTo(W - 75, 235);
-        ctx.stroke();
-
-        // 3. Columna Esquerra: Mapa
-        if (imgReady && mapImg.naturalWidth > 0) {
-          ctx.drawImage(mapImg, mapX, mapY, mapW, mapH);
-        } else {
-          ctx.fillStyle = '#eef2eb';
-          ctx.fillRect(mapX, mapY, mapW, mapH);
-          ctx.fillStyle = '#7a1a12';
-          ctx.font = 'bold 24px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('Terme Municipal de Sant Feliu Sasserra', mapX + mapW / 2, mapY + mapH / 2);
+      const tryFetch = async (url) => {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 9000);
+        try {
+          const res = await fetch(url, { signal: ctrl.signal });
+          clearTimeout(tid);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const blob = await res.blob();
+          const objUrl = URL.createObjectURL(blob);
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve({ img, objUrl });
+            img.onerror = () => {
+              URL.revokeObjectURL(objUrl);
+              resolve(null);
+            };
+            img.src = objUrl;
+          });
+        } catch (e) {
+          clearTimeout(tid);
+          return null;
         }
+      };
 
-        // Marc del mapa
-        ctx.strokeStyle = '#522415';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(mapX, mapY, mapW, mapH);
+      let result = await tryFetch(primaryUrl);
+      if (!result) {
+        result = await tryFetch(fallbackUrl);
+      }
+      return result;
+    }
 
-        // Plot dels 19 marcadors numerats sobre el mapa
-        points.forEach((pt, idx) => {
-          const num = idx + 1;
-          const mx = mapX + ((pt.longitude - minLng) / (maxLng - minLng)) * mapW;
-          const my = mapY + ((maxLat - pt.latitude) / (maxLat - minLat)) * mapH;
+    let mapResult = null;
+    try {
+      mapResult = await loadMap();
+    } catch (e) {
+      console.warn('Error carregant mapa:', e);
+    }
 
-          // Ombra
-          ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.45)';
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetY = 3;
+    try {
+      // 1. Fons i marc decoratiu
+      ctx.fillStyle = '#fffdfa';
+      ctx.fillRect(0, 0, W, H);
 
-          // Cercle vermell exterior
-          ctx.beginPath();
-          ctx.arc(mx, my, 20, 0, Math.PI * 2);
-          ctx.fillStyle = '#b81414';
-          ctx.fill();
+      // Doble marc cartell
+      ctx.strokeStyle = '#7a1a12';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(30, 30, W - 60, H - 60);
 
-          ctx.lineWidth = 3.5;
-          ctx.strokeStyle = '#ffffff';
-          ctx.stroke();
-          ctx.restore();
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(45, 45, W - 90, H - 90);
 
-          // Número centrat
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '900 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(String(num), mx, my);
-        });
+      // 2. Capçalera del cartell
+      ctx.fillStyle = '#7a1a12';
+      ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('🎄 RUTA OFICIAL 2026', 75, 105);
 
-        // Llegenda inferior del mapa
+      // TÍTOL PRINCIPAL
+      ctx.fillStyle = '#522415';
+      ctx.font = '900 56px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.fillText('RUTA DELS PESSEBRES 2026', 75, 170);
+
+      ctx.fillStyle = '#7a1a12';
+      ctx.font = '900 28px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.fillText('SANT FELIU SASSERRA', 75, 210);
+
+      // Meta dret
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#522415';
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`Total: ${points.length} Pessebres`, W - 75, 115);
+
+      ctx.fillStyle = '#7a6555';
+      ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText(`Data d'exportació: ${dateFormatted}`, W - 75, 155);
+
+      ctx.fillStyle = '#a07855';
+      ctx.font = '18px monospace';
+      ctx.fillText('eloibertranscb.github.io/RUTA-PESSEBRES-2026', W - 75, 195);
+
+      // Línia divisòria capçalera
+      ctx.strokeStyle = '#7a1a12';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(75, 235);
+      ctx.lineTo(W - 75, 235);
+      ctx.stroke();
+
+      // 3. Columna Esquerra: Mapa
+      if (mapResult && mapResult.img && mapResult.img.naturalWidth > 0) {
+        ctx.drawImage(mapResult.img, mapX, mapY, mapW, mapH);
+      } else {
+        ctx.fillStyle = '#eef2eb';
+        ctx.fillRect(mapX, mapY, mapW, mapH);
+        ctx.fillStyle = '#7a1a12';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Terme Municipal de Sant Feliu Sasserra', mapX + mapW / 2, mapY + mapH / 2);
+      }
+
+      // Marc del mapa
+      ctx.strokeStyle = '#522415';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(mapX, mapY, mapW, mapH);
+
+      // Plot dels marcadors numerats sobre el mapa
+      points.forEach((pt, idx) => {
+        const num = idx + 1;
+        const mx = mapX + ((pt.longitude - minLng) / (maxLng - minLng)) * mapW;
+        const my = mapY + ((maxLat - pt.latitude) / (maxLat - minLat)) * mapH;
+
+        // Ombra
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+
+        // Cercle vermell exterior
+        ctx.beginPath();
+        ctx.arc(mx, my, 20, 0, Math.PI * 2);
+        ctx.fillStyle = '#b81414';
+        ctx.fill();
+
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.restore();
+
+        // Número centrat
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(num), mx, my);
+      });
+
+      // Llegenda inferior del mapa
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+
+      ctx.beginPath();
+      ctx.arc(mapX + 15, mapY + mapH + 30, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#b81414';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.fillStyle = '#522415';
+      ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillText('Pessebre numerat (1 - ' + points.length + ')', mapX + 32, mapY + mapH + 30);
+
+      ctx.textAlign = 'right';
+      ctx.fillText('📍 Terme Municipal de Sant Feliu Sasserra', mapX + mapW, mapY + mapH + 30);
+
+      // 4. Columna Dreta: Índex de Pessebres
+      const idxX = 1490;
+      const idxY = 260;
+      const idxW = 835;
+      const idxH = 1260;
+
+      ctx.fillStyle = '#fcf9f2';
+      ctx.fillRect(idxX, idxY, idxW, idxH);
+      ctx.strokeStyle = '#dcd3c4';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(idxX, idxY, idxW, idxH);
+
+      // Títol Índex
+      ctx.fillStyle = '#7a1a12';
+      ctx.font = '900 30px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText('ÍNDEX DE PESSEBRES', idxX + idxW / 2, idxY + 45);
+
+      ctx.strokeStyle = '#e0d0c4';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(idxX + 30, idxY + 60);
+      ctx.lineTo(idxX + idxW - 30, idxY + 60);
+      ctx.stroke();
+
+      // 2 Columnes d'Índex
+      const col1X = idxX + 25;
+      const col2X = idxX + 430;
+      const startListY = idxY + 105;
+      const rowHeight = 72;
+
+      points.forEach((pt, idx) => {
+        const num = idx + 1;
+        const isCol1 = idx < 10;
+        const colX = isCol1 ? col1X : col2X;
+        const row = isCol1 ? idx : idx - 10;
+        const itemY = startListY + (row * rowHeight);
+
+        // Insígnia número
+        ctx.beginPath();
+        ctx.arc(colX + 16, itemY - 6, 16, 0, Math.PI * 2);
+        ctx.fillStyle = '#7a1a12';
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(num), colX + 16, itemY - 6);
+
+        // Nom pessebre
+        ctx.fillStyle = '#2a1a14';
+        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
 
-        ctx.beginPath();
-        ctx.arc(mapX + 15, mapY + mapH + 30, 8, 0, Math.PI * 2);
-        ctx.fillStyle = '#b81414';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
+        let name = pt.name;
+        if (name.length > 25) name = name.substring(0, 23) + '…';
+        ctx.fillText(name, colX + 42, itemY - 6);
+      });
 
-        ctx.fillStyle = '#522415';
-        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText('Pessebre numerat (1 - 19)', mapX + 32, mapY + mapH + 30);
+      // Caixa d'informació pràctica
+      const infoY = idxY + 840;
+      const infoH = 390;
+      ctx.fillStyle = '#f3ebe0';
+      ctx.fillRect(idxX + 25, infoY, idxW - 50, infoH);
+      ctx.strokeStyle = '#c4b49e';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(idxX + 25, infoY, idxW - 50, infoH);
 
-        ctx.textAlign = 'right';
-        ctx.fillText('📍 Terme Municipal de Sant Feliu Sasserra (Mapes Esri)', mapX + mapW, mapY + mapH + 30);
+      ctx.fillStyle = '#522415';
+      ctx.font = '900 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('ℹ️ INFORMACIÓ PRÀCTICA I NORMES', idxX + 45, infoY + 22);
 
-        // 4. Columna Dreta: Índex de Pessebres
-        const idxX = 1490;
-        const idxY = 260;
-        const idxW = 835;
-        const idxH = 1260;
+      ctx.fillStyle = '#4a382c';
+      ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const lineSpacing = 32;
+      let lineY = infoY + 68;
 
-        ctx.fillStyle = '#fcf9f2';
-        ctx.fillRect(idxX, idxY, idxW, idxH);
-        ctx.strokeStyle = '#dcd3c4';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(idxX, idxY, idxW, idxH);
+      const infoLines = [
+        '• Ruta circular pel terme de Sant Feliu Sasserra.',
+        '• Apte per fer a peu, caminant o en bicicleta (BTT).',
+        '• Recomanem portar calçat de muntanya i aigua.',
+        '• Respecteu els pessebres, les figures i el medi natural.',
+        '• No deixeu deixalles ni malmeteu els camins.',
+        '• Podeu marcar els visitats des de la web oficial:',
+        '  eloibertranscb.github.io/RUTA-PESSEBRES-2026',
+        '• En cas d\'emergències truqueu al 112.'
+      ];
 
-        // Títol Índex
-        ctx.fillStyle = '#7a1a12';
-        ctx.font = '900 30px "Bodoni Moda", "Playfair Display", Georgia, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText('ÍNDEX DE PESSEBRES', idxX + idxW / 2, idxY + 45);
+      infoLines.forEach(l => {
+        ctx.fillText(l, idxX + 45, lineY);
+        lineY += lineSpacing;
+      });
 
-        ctx.strokeStyle = '#e0d0c4';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(idxX + 30, idxY + 60);
-        ctx.lineTo(idxX + idxW - 30, idxY + 60);
-        ctx.stroke();
+      // 5. Peu de pàgina (SENSE menció d'Ajuntament ni Comissió)
+      ctx.strokeStyle = '#7a1a12';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(75, 1630);
+      ctx.lineTo(W - 75, 1630);
+      ctx.stroke();
 
-        // 2 Columnes d'Índex
-        const col1X = idxX + 25;
-        const col2X = idxX + 430;
-        const startListY = idxY + 105;
-        const rowHeight = 72;
+      ctx.fillStyle = '#7a6555';
+      ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Bones Festes 2026!', 75, 1645);
 
-        points.forEach((pt, idx) => {
-          const num = idx + 1;
-          const isCol1 = idx < 10;
-          const colX = isCol1 ? col1X : col2X;
-          const row = isCol1 ? idx : idx - 10;
-          const itemY = startListY + (row * rowHeight);
+      ctx.textAlign = 'right';
+      ctx.fillText('Ruta dels Pessebres 2026 • Format A4 Horitzontal', W - 75, 1645);
 
-          // Insígnia número
-          ctx.beginPath();
-          ctx.arc(colX + 16, itemY - 6, 16, 0, Math.PI * 2);
-          ctx.fillStyle = '#7a1a12';
-          ctx.fill();
+      // 6. Descarregar fitxer directe en PDF o Imatge
+      const filename = `Ruta_Pessebres_2026_Sant_Feliu_Sasserra_${dateFile}`;
 
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '900 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(String(num), colX + 16, itemY - 6);
-
-          // Nom pessebre
-          ctx.fillStyle = '#2a1a14';
-          ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'middle';
-
-          let name = pt.name;
-          if (name.length > 25) name = name.substring(0, 23) + '…';
-          ctx.fillText(name, colX + 42, itemY - 6);
-        });
-
-        // Caixa d'informació pràctica
-        const infoY = idxY + 840;
-        const infoH = 390;
-        ctx.fillStyle = '#f3ebe0';
-        ctx.fillRect(idxX + 25, infoY, idxW - 50, infoH);
-        ctx.strokeStyle = '#c4b49e';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(idxX + 25, infoY, idxW - 50, infoH);
-
-        ctx.fillStyle = '#522415';
-        ctx.font = '900 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText('ℹ️ INFORMACIÓ PRÀCTICA I NORMES', idxX + 45, infoY + 22);
-
-        ctx.fillStyle = '#4a382c';
-        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        const lineSpacing = 32;
-        let lineY = infoY + 68;
-
-        const infoLines = [
-          '• Ruta circular pel terme de Sant Feliu Sasserra.',
-          '• Apte per fer a peu, caminant o en bicicleta (BTT).',
-          '• Recomanem portar calçat de muntanya i aigua.',
-          '• Respecteu els pessebres, les figures i el medi natural.',
-          '• No deixeu deixalles ni malmeteu els camins.',
-          '• Podeu marcar els visitats des de la web oficial:',
-          '  eloibertranscb.github.io/RUTA-PESSEBRES-2026',
-          '• En cas d\'emergències truqueu al 112.'
-        ];
-
-        infoLines.forEach(l => {
-          ctx.fillText(l, idxX + 45, lineY);
-          lineY += lineSpacing;
-        });
-
-        // 5. Peu de pàgina
-        ctx.strokeStyle = '#7a1a12';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(75, 1630);
-        ctx.lineTo(W - 75, 1630);
-        ctx.stroke();
-
-        ctx.fillStyle = '#7a6555';
-        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText('Ajuntament de Sant Feliu Sasserra • Comissió dels Pessebres', 75, 1645);
-
-        ctx.textAlign = 'right';
-        ctx.fillText('Bones Festes 2026! • Pàgina 1 de 1 (Format A4 Horitzontal)', W - 75, 1645);
-
-        // 6. Descarregar fitxer directe en PDF o Imatge
-        const filename = `Ruta_Pessebres_2026_Sant_Feliu_Sasserra_${dateFile}`;
-
-        if (window.jspdf && window.jspdf.jsPDF) {
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-          pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-          pdf.save(`${filename}.pdf`);
-          showToast('✅ PDF A4 oficial descarregat correctament!');
-        } else {
-          canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${filename}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('✅ Cartell i Mapa A4 descarregat!');
-          }, 'image/png');
-        }
-      } catch (err) {
-        console.error('Error generant document:', err);
-        showToast('⚠️ Error al generar el document: ' + err.message);
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<span>📄</span> Descarregar Mapa i Índex (A4)';
-        }
+      if (window.jspdf && window.jspdf.jsPDF) {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+        pdf.save(`${filename}.pdf`);
+        showToast('✅ PDF A4 oficial descarregat correctament!');
+      } else {
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('✅ Cartell i Mapa A4 descarregat!');
+        }, 'image/png');
       }
-    };
-
-    mapImg.onload = () => renderPosterAndDownload(true);
-    mapImg.onerror = (e) => {
-      console.warn('Map server error, rendering fallback:', e);
-      renderPosterAndDownload(false);
-    };
-
-    // Timeout de seguretat per si la xarxa és lenta
-    setTimeout(() => {
-      if (!mapImg.complete) {
-        renderPosterAndDownload(false);
+    } catch (err) {
+      console.error('Error generant document:', err);
+      showToast('⚠️ Error al generar el document: ' + err.message);
+    } finally {
+      if (mapResult && mapResult.objUrl) {
+        URL.revokeObjectURL(mapResult.objUrl);
       }
-    }, 4500);
-
-    mapImg.src = mapUrl;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📄</span> Descarregar Mapa i Índex (A4)';
+      }
+    }
   };
 
   const btnDrawerPdf = document.getElementById('btn-drawer-pdf');
