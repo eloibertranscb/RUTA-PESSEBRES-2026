@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Capa de mapa gratuïta d'Esri World Street Map
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Mapes &copy; <a href="https://www.esri.com/">Esri</a> | Ruta dels Pessebres 2026',
-      maxZoom: 18
+      maxZoom: 18,
+      crossOrigin: true
     }).addTo(map);
 
     markersGroup = L.layerGroup().addTo(map);
@@ -831,6 +832,137 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 14. EXPORTACIÓ EN PDF (A4 HORITZONTAL)
+  function openPdfExportModal() {
+    const today = new Date();
+    const dateFormatted = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    const metaDateEl = document.getElementById('pdf-meta-date');
+    if (metaDateEl) {
+      metaDateEl.textContent = `Data d'exportació: ${dateFormatted}`;
+    }
+
+    const approved = window.db.getApprovedPoints();
+    const totalEl = document.getElementById('pdf-meta-total');
+    if (totalEl) totalEl.textContent = approved.length;
+
+    const gridEl = document.getElementById('pdf-index-grid');
+    if (gridEl) {
+      gridEl.innerHTML = '';
+      approved.forEach((pt, idx) => {
+        const row = document.createElement('div');
+        row.className = 'pdf-index-row';
+        row.innerHTML = `
+          <span class="pdf-index-badge">${idx + 1}</span>
+          <span class="pdf-index-label" title="${escapeHTML(pt.name)}">${escapeHTML(pt.name)}</span>
+        `;
+        gridEl.appendChild(row);
+      });
+    }
+
+    const snapshotImg = document.getElementById('pdf-map-snapshot');
+    const loadingEl = document.getElementById('pdf-map-loading');
+    if (snapshotImg) snapshotImg.style.display = 'none';
+    if (loadingEl) {
+      loadingEl.style.display = 'flex';
+      loadingEl.innerHTML = `<span class="spinner">⏳</span><span>Generant mapa d'alta resolució...</span>`;
+    }
+
+    showModal('modal-pdf');
+
+    // Capturem el mapa després que s'hagi pintat el modal
+    setTimeout(() => {
+      const mapContainer = document.getElementById('map');
+      const html2canvasLib = window.html2canvas;
+
+      if (html2canvasLib && mapContainer) {
+        html2canvasLib(mapContainer, {
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          ignoreElements: (el) => {
+            if (!el || !el.classList) return false;
+            return (
+              el.classList.contains('app-top-header') ||
+              el.classList.contains('floating-index-panel') ||
+              el.classList.contains('btn-floating-add') ||
+              el.classList.contains('leaflet-control-container') ||
+              el.classList.contains('modal-overlay') ||
+              el.classList.contains('toast-notification')
+            );
+          }
+        }).then(canvas => {
+          if (snapshotImg) {
+            snapshotImg.src = canvas.toDataURL('image/jpeg', 0.95);
+            snapshotImg.style.display = 'block';
+          }
+          if (loadingEl) {
+            loadingEl.style.display = 'none';
+          }
+        }).catch(err => {
+          console.error('Error generant captura del mapa:', err);
+          if (loadingEl) {
+            loadingEl.innerHTML = `<span>⚠️ No s'ha pogut carregar la captura del mapa, però pots desar el PDF igualment.</span>`;
+          }
+        });
+      }
+    }, 250);
+  }
+
+  function downloadPdfA4() {
+    const sheet = document.getElementById('pdf-a4-sheet');
+    if (!sheet) return;
+
+    showToast('⏳ Descarregant PDF en format A4 horitzontal...');
+
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const filename = `Ruta_Pessebres_2026_Sant_Feliu_Sasserra_${dateStr}.pdf`;
+
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, scrollX: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    if (window.html2pdf) {
+      window.html2pdf().set(opt).from(sheet).save().then(() => {
+        showToast('✅ PDF A4 descarregat correctament!');
+      }).catch(err => {
+        console.error('Error descarregant PDF:', err);
+        showToast('⚠️ Error generant PDF. Pots utilitzar el botó "Imprimir".');
+      });
+    } else {
+      window.print();
+    }
+  }
+
+  const btnOpenPdf = document.getElementById('btn-open-pdf');
+  if (btnOpenPdf) {
+    btnOpenPdf.addEventListener('click', openPdfExportModal);
+  }
+
+  const btnDrawerPdf = document.getElementById('btn-drawer-pdf');
+  if (btnDrawerPdf) {
+    btnDrawerPdf.addEventListener('click', () => {
+      collapseIndexPanel();
+      openPdfExportModal();
+    });
+  }
+
+  const btnDownloadPdfDirect = document.getElementById('btn-download-pdf-direct');
+  if (btnDownloadPdfDirect) {
+    btnDownloadPdfDirect.addEventListener('click', downloadPdfA4);
+  }
+
+  const btnPrintPdfDirect = document.getElementById('btn-print-pdf-direct');
+  if (btnPrintPdfDirect) {
+    btnPrintPdfDirect.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
   // A mòbil, per defecte l'índex comença plegat perquè es vegi el mapa
   if (window.innerWidth <= 768) {
     collapseIndexPanel();
@@ -841,3 +973,4 @@ document.addEventListener('DOMContentLoaded', () => {
   renderUserProfile();
   renderRankingTable();
 });
+
