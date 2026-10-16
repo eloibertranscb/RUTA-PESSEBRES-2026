@@ -180,6 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    if (approvedPoints.length === 0 && indexUl) {
+      indexUl.innerHTML = '<li class="index-panel-empty">Cap pessebre aprovat encara</li>';
+    }
+
     if (bounds.length > 0) {
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
     }
@@ -287,9 +291,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnOpenAddPessebre.addEventListener('click', () => {
     const currentUser = window.db.getCurrentUser();
-    if (currentUser) {
-      document.getElementById('add-proposer').value = currentUser.username;
+    if (!currentUser) {
+      showToast("⚠️ Cal que t'identifiquis o et registris per proposar un nou pessebre!");
+      showModal('modal-profile');
+      return;
     }
+    const propInput = document.getElementById('add-proposer');
+    propInput.value = currentUser.username;
+    propInput.readOnly = true;
     showModal('modal-add-pessebre');
   });
 
@@ -397,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 9. PERFIL DE L'USUARI I AUTHENTICATION (IDENTIFICACIÓ FÀCIL & GOOGLE)
+  // 9. PERFIL DE L'USUARI I AUTHENTICATION (NOM I CONTRASENYA)
   const btnOpenProfile = document.getElementById('btn-open-profile');
   const headerUserLabel = document.getElementById('header-user-label');
 
@@ -410,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = window.db.getCurrentUser();
     const profileLoggedView = document.getElementById('profile-view-logged');
     const profileAuthView = document.getElementById('profile-view-auth');
+    const btnOpenAdmin = document.getElementById('btn-open-admin');
 
     if (currentUser) {
       headerUserLabel.textContent = currentUser.username;
@@ -417,13 +427,26 @@ document.addEventListener('DOMContentLoaded', () => {
       profileAuthView.style.display = 'none';
 
       document.getElementById('profile-username').textContent = `@${currentUser.username}`;
-      document.getElementById('profile-email').textContent = currentUser.email;
+      document.getElementById('profile-email').textContent = currentUser.email || '';
+
+      // Mostrar botó Admin ÚNICAMENT a l'usuari admin autoritzat
+      if (currentUser.role === 'ADMIN' || currentUser.username.toLowerCase() === 'admin') {
+        btnOpenAdmin.style.display = 'flex';
+        const pendingCount = window.db.getPendingPoints().length;
+        const badge = document.getElementById('admin-pending-badge');
+        if (badge) {
+          badge.textContent = pendingCount;
+          badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+      } else {
+        btnOpenAdmin.style.display = 'none';
+      }
 
       // Visites i rànquing
       const userVisits = window.db.getUserVisits(currentUser.id);
       const userRank = window.db.getUserRank(currentUser.id);
 
-      document.getElementById('profile-rank-text').textContent = `Posició al rànquing: #${userRank || '-'}`;
+      document.getElementById('profile-rank-text').textContent = currentUser.role === 'ADMIN' ? '⭐ Administrador' : `Posició al rànquing: #${userRank || '-'}`;
       document.getElementById('profile-visited-count-text').textContent = `🎄 ${userVisits.length} pessebres visitats`;
 
       const ul = document.getElementById('profile-visited-ul');
@@ -449,126 +472,78 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     } else {
-      headerUserLabel.textContent = 'Entrar';
+      headerUserLabel.textContent = "Registra't / Entrar";
+      btnOpenAdmin.style.display = 'none';
       profileLoggedView.style.display = 'none';
       profileAuthView.style.display = 'block';
     }
   }
 
-  // ACCÉS RÀPID AMB NOM I COGNOMS
-  const formQuickUser = document.getElementById('form-quick-user');
-  formQuickUser.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const fullName = document.getElementById('quick-fullname').value;
-    try {
-      const user = window.db.loginOrRegisterQuickUser(fullName);
-      showToast(`🎉 Benvingut/da, ${user.username}! Ja pots participar.`);
-      renderUserProfile();
-      renderApprovedMarkers();
-      renderRankingTable();
-      updateTopStats();
-    } catch (err) {
-      showToast('⚠️ ' + err.message);
-    }
-  });
+  // PESTANYES LOGIN / REGISTRE
+  const tabBtnLogin = document.getElementById('tab-btn-login');
+  const tabBtnRegister = document.getElementById('tab-btn-register');
+  const formLoginUser = document.getElementById('form-login-user');
+  const formRegisterUser = document.getElementById('form-register-user');
 
-  // BOTÓ GOOGLE LOGIN ( FINESTRA POPUP GOOGLE OAUTH REAL )
-  window.onGoogleAuthSuccess = function(name, email) {
-    const user = window.db.loginOrRegisterQuickUser(name, email);
-    showToast(`🌐 Sessió iniciada amb Google (${user.email})!`);
-    renderUserProfile();
-    renderApprovedMarkers();
-    renderRankingTable();
-    updateTopStats();
-  };
+  if (tabBtnLogin && tabBtnRegister) {
+    tabBtnLogin.addEventListener('click', () => {
+      tabBtnLogin.classList.add('active');
+      tabBtnRegister.classList.remove('active');
+      formLoginUser.style.display = 'block';
+      formRegisterUser.style.display = 'none';
+    });
 
-  const btnGoogleLogin = document.getElementById('btn-google-login');
-  btnGoogleLogin.addEventListener('click', () => {
-    const popup = window.open('', 'GoogleAuthPopup', 'width=500,height=620,left=200,top=100');
-    
-    if (popup) {
-      popup.document.write(`
-        <!DOCTYPE html>
-        <html lang="ca">
-        <head>
-          <meta charset="UTF-8">
-          <title>Inicia sessió amb Google</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; margin: 0; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #202124; }
-            .card { background: white; border: 1px solid #dadce0; border-radius: 8px; padding: 32px 28px; width: 100%; max-width: 380px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
-            .google-logo { width: 48px; height: 48px; margin-bottom: 16px; }
-            h2 { font-size: 1.4rem; font-weight: 500; margin: 0 0 8px 0; color: #202124; }
-            p { font-size: 0.9rem; color: #5f6368; margin-bottom: 24px; }
-            .input-group { margin-bottom: 16px; text-align: left; }
-            label { display: block; font-size: 0.8rem; font-weight: 600; color: #3c4043; margin-bottom: 6px; }
-            input { width: 100%; padding: 12px; border: 1px solid #dadce0; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
-            input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
-            button { background: #1a73e8; color: white; border: none; padding: 12px 24px; font-size: 0.95rem; font-weight: 600; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 8px; }
-            button:hover { background: #1557b0; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <svg class="google-logo" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <h2>Inicia sessió amb Google</h2>
-            <p>Per continuar a <strong>Ruta dels Pessebres 2026</strong></p>
-            <form id="gform">
-              <div class="input-group">
-                <label for="gname">Nom i Cognoms</label>
-                <input type="text" id="gname" value="Eloi Bertrans" required>
-              </div>
-              <div class="input-group">
-                <label for="gemail">Correu de Gmail</label>
-                <input type="email" id="gemail" value="eloi.bertrans@gmail.com" required>
-              </div>
-              <button type="submit">Continuar</button>
-            </form>
-          </div>
-          <script>
-            document.getElementById('gform').addEventListener('submit', function(e) {
-              e.preventDefault();
-              var name = document.getElementById('gname').value;
-              var email = document.getElementById('gemail').value;
-              if (window.opener && window.opener.onGoogleAuthSuccess) {
-                window.opener.onGoogleAuthSuccess(name, email);
-              }
-              window.close();
-            });
-          </script>
-        </body>
-        </html>
-      `);
-    }
-  });
+    tabBtnRegister.addEventListener('click', () => {
+      tabBtnRegister.classList.add('active');
+      tabBtnLogin.classList.remove('active');
+      formRegisterUser.style.display = 'block';
+      formLoginUser.style.display = 'none';
+    });
+  }
 
-  // ENLLAÇ LOGIN ADMIN AMB CONTRASENYA
-  const linkShowAdmin = document.getElementById('link-show-admin-login');
-  const formAdminLogin = document.getElementById('form-admin-login');
+  // SUBMIT INICI DE SESSIÓ (USUARIS I ADMIN)
+  if (formLoginUser) {
+    formLoginUser.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('login-username').value;
+      const p = document.getElementById('login-password').value;
+      try {
+        const user = await window.db.loginUser(u, p);
+        if (user.role === 'ADMIN') {
+          showToast(`⚙️ Benvingut/da, Administrador!`);
+        } else {
+          showToast(`👋 Benvingut/da de nou, ${user.username}!`);
+        }
+        hideAllModals();
+        renderUserProfile();
+        renderApprovedMarkers();
+        renderRankingTable();
+        updateTopStats();
+      } catch (err) {
+        showToast('⚠️ ' + err.message);
+      }
+    });
+  }
 
-  linkShowAdmin.addEventListener('click', (e) => {
-    e.preventDefault();
-    formAdminLogin.style.display = formAdminLogin.style.display === 'none' ? 'block' : 'none';
-  });
-
-  formAdminLogin.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const pass = document.getElementById('admin-pass').value;
-    try {
-      const user = window.db.loginUser('admin', pass);
-      showToast(`⚙️ Sessió d'Administrador iniciada!`);
-      renderUserProfile();
-      renderApprovedMarkers();
-      renderRankingTable();
-      renderAdminPanel();
-    } catch (err) {
-      showToast('⚠️ Contrasenya d\'admin incorrecta.');
-    }
-  });
+  // SUBMIT REGISTRE DE NOU USUARI
+  if (formRegisterUser) {
+    formRegisterUser.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const u = document.getElementById('reg-username').value;
+      const p = document.getElementById('reg-password').value;
+      try {
+        const user = await window.db.registerUser(u, p);
+        showToast(`🎉 Compte creat! Benvingut/da a la Ruta dels Pessebres, ${user.username}!`);
+        hideAllModals();
+        renderUserProfile();
+        renderApprovedMarkers();
+        renderRankingTable();
+        updateTopStats();
+      } catch (err) {
+        showToast('⚠️ ' + err.message);
+      }
+    });
+  }
 
   // LOGOUT I CANVI D'USUARI
   document.getElementById('btn-logout').addEventListener('click', () => {
@@ -577,6 +552,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderUserProfile();
     renderApprovedMarkers();
     renderRankingTable();
+  });
+
+  document.getElementById('btn-switch-user').addEventListener('click', () => {
+    window.db.logout();
+    renderUserProfile();
   });
 
   document.getElementById('btn-switch-user').addEventListener('click', () => {

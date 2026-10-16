@@ -47,13 +47,13 @@
         <span>👤</span> <span id="header-user-label">Perfil</span>
       </button>
 
-      <button class="btn-header btn-admin-pill" id="btn-open-admin">
+      <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">
         <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
       </button>
     </div>
 
-    <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA -->
-    <div class="floating-index-panel">
+    <!-- ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA (SENSE FONS BLANC I SENSE SCROLL) -->
+    <div class="floating-index-panel" id="floating-index-panel">
       <div class="index-panel-header">ÍNDEX DE PESSEBRES</div>
       <ul class="index-panel-list" id="index-panel-ul">
         <!-- Generat dinàmicament per JS -->
@@ -85,12 +85,12 @@
         <form id="form-add-pessebre">
           <div class="form-group">
             <label class="form-label" for="add-name">Nom del pessebre *</label>
-            <input type="text" id="add-name" class="form-input" placeholder="Ex. Pessebre Vivent de Vic" required>
+            <input type="text" id="add-name" class="form-input" placeholder="Ex. Pessebre de la Font" required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="add-municipality">Municipi *</label>
-            <input type="text" id="add-municipality" class="form-input" placeholder="Ex. Vic" required>
+            <input type="text" id="add-municipality" class="form-input" value="Sant Feliu Sasserra" required>
           </div>
 
           <div class="form-group">
@@ -107,12 +107,12 @@
 
           <div class="form-group">
             <label class="form-label" for="add-description">Descripció opcional</label>
-            <textarea id="add-description" class="form-textarea" rows="3" placeholder="Horaris, informació d'interès, característiques..."></textarea>
+            <textarea id="add-description" class="form-textarea" rows="3" placeholder="Com arribar-hi, indicacions..."></textarea>
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="add-proposer">Nom de l'usuari que el proposa *</label>
-            <input type="text" id="add-proposer" class="form-input" placeholder="El teu nom d'usuari" required>
+            <label class="form-label" for="add-proposer">Nom de qui el proposa *</label>
+            <input type="text" id="add-proposer" class="form-input" placeholder="El teu nom" required readonly>
           </div>
 
           <div class="form-actions">
@@ -158,7 +158,7 @@
   </div>
 
   <!-- ----------------------------------------------------------------------
-       MODAL 3: PERFIL DE L'USUARI I LOGIN FACIL / GOOGLE
+       MODAL 3: PERFIL DE L'USUARI / REGISTRE I LOGIN
        ---------------------------------------------------------------------- -->
   <div class="modal-overlay" id="modal-profile">
     <div class="modal-card auth-modal-card">
@@ -182,51 +182,46 @@
         </div>
       </div>
 
-      <!-- VISTA IDENTIFICACIÓ FÀCIL / GOOGLE -->
+      <!-- VISTA IDENTIFICACIÓ / REGISTRE -->
       <div id="profile-view-auth">
         <div class="auth-welcome-banner">
           <button class="btn-close-modal auth-close-btn">&times;</button>
           <div class="auth-welcome-icon">🎄</div>
           <h2 class="auth-welcome-title">Benvingut/da</h2>
-          <p class="auth-welcome-sub">Identifica't per marcar els pessebres que visites i sortir al rànquing.</p>
+          <p class="auth-welcome-sub">Identifica't per marcar pessebres, demanar noves rutes i sortir al rànquing.</p>
         </div>
 
         <div class="auth-form-body">
-          <!-- BOTÓ GOOGLE LOGIN -->
-          <button type="button" id="btn-google-login" class="auth-btn-google">
-            <svg width="20" height="20" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.617z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-            </svg>
-            Continua amb Google
-          </button>
-
-          <div class="auth-divider">
-            <span>o amb el teu nom</span>
+          <!-- Pestanyes: Inicia sessió / Registra't -->
+          <div class="auth-tab-switch">
+            <button type="button" class="auth-tab-btn active" id="tab-btn-login">Inicia Sessió</button>
+            <button type="button" class="auth-tab-btn" id="tab-btn-register">Registra't</button>
           </div>
 
-          <!-- FORMULARI SIMPLE NOM I COGNOM -->
-          <form id="form-quick-user">
+          <!-- FORMULARI 1: INICIAR SESSIÓ -->
+          <form id="form-login-user">
             <div class="auth-input-group">
-              <label class="auth-input-label" for="quick-fullname">Nom i Cognoms</label>
-              <input type="text" id="quick-fullname" class="auth-input" placeholder="Ex. Eloi Bertrans" required autocomplete="name">
+              <label class="auth-input-label" for="login-username">Nom d'usuari</label>
+              <input type="text" id="login-username" class="auth-input" placeholder="El teu nom (o 'admin')" required autocomplete="username">
             </div>
-            <button type="submit" class="auth-btn-primary">Entrar al Rànquing →</button>
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="login-password">Contrasenya</label>
+              <input type="password" id="login-password" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="auth-btn-primary">Entrar →</button>
           </form>
 
-          <!-- OPCIÓ PER ADMINS -->
-          <div class="auth-admin-link-wrap">
-            <a href="#" id="link-show-admin-login" class="auth-admin-link">Ets administrador?</a>
-          </div>
-
-          <form id="form-admin-login" style="display:none;" class="auth-admin-form">
+          <!-- FORMULARI 2: REGISTRAR-SE -->
+          <form id="form-register-user" style="display: none;">
             <div class="auth-input-group">
-              <label class="auth-input-label" for="admin-pass">Contrasenya d'administrador</label>
-              <input type="password" id="admin-pass" class="auth-input" placeholder="••••••••" required>
+              <label class="auth-input-label" for="reg-username">Nom i Cognoms</label>
+              <input type="text" id="reg-username" class="auth-input" placeholder="Ex. Marc Vila" required autocomplete="name">
             </div>
-            <button type="submit" class="auth-btn-primary">Entrar com a Admin</button>
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="reg-password">Tria una contrasenya</label>
+              <input type="password" id="reg-password" class="auth-input" placeholder="Mínim 3 caràcters" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="auth-btn-primary">Crear Compte →</button>
           </form>
         </div>
       </div>

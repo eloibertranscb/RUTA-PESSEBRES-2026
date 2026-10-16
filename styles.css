@@ -167,31 +167,29 @@ body {
 }
 
 /* ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA */
+/* ÍNDEX DE PESSEBRES A LA PART INFERIOR ESQUERRA (SENSE FONS BLANC I SENSE SCROLL) */
 .floating-index-panel {
   position: absolute;
   bottom: 24px;
   left: 24px;
   z-index: 900;
-  max-height: 48vh;
-  width: 290px;
-  overflow-y: auto;
-  background: rgba(253, 251, 247, 0.92);
-  backdrop-filter: blur(6px);
-  border: 1.5px solid #522415;
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  background: transparent;
+  padding: 0;
+  max-width: 340px;
+  pointer-events: auto;
 }
 
 .index-panel-header {
-  font-family: 'Bodoni Moda', Georgia, serif;
+  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #522415;
-  border-bottom: 1px solid #d4c3b3;
-  padding-bottom: 6px;
+  border-bottom: 2px solid #522415;
+  padding-bottom: 4px;
   margin-bottom: 8px;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 255, 255, 0.9);
 }
 
 .index-panel-list {
@@ -202,29 +200,40 @@ body {
 
 .index-item {
   font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
   color: #522415;
-  padding: 4px 0;
+  padding: 3px 0;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 18px rgba(255, 255, 255, 0.9);
 }
 
 .index-item:hover {
   color: #9e1b1b;
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
 .index-item-bullet {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   background: #7a1a12;
   border-radius: 50%;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.index-panel-empty {
+  font-family: 'Bodoni Moda', Georgia, serif;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: #522415;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
 }
 
 /* BOTÓ FLOTANT "AFEGEIX UN PESSEBRE" */
@@ -930,6 +939,35 @@ body {
 /* ——— FORM BODY ——— */
 .auth-form-body {
   padding: 24px 24px 20px;
+}
+
+.auth-tab-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: #eee5db;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #7a6555;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+}
+
+.auth-tab-btn.active {
+  background: white;
+  color: #522415;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .auth-profile-body {

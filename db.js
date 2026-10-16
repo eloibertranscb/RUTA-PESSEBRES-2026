@@ -11,66 +11,14 @@ const DB_KEYS = {
   CURRENT_USER: 'pessebres_2026_current_user'
 };
 
-// Dades inicials per defecte (Seed Data per a mode offline / inicial)
-const SEED_USERS = [
-  { id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', password: 'admin', role: 'ADMIN', created_at: '2026-01-01T10:00:00Z' },
-  { id: 'usr_marc', username: 'Marc', email: 'marc@gmail.com', password: '123', role: 'USER', created_at: '2026-01-02T11:00:00Z' },
-  { id: 'usr_anna', username: 'Anna', email: 'anna@gmail.com', password: '123', role: 'USER', created_at: '2026-01-02T12:00:00Z' },
-  { id: 'usr_jordi', username: 'Jordi', email: 'jordi@gmail.com', password: '123', role: 'USER', created_at: '2026-01-03T09:30:00Z' },
-  { id: 'usr_pau', username: 'Pau', email: 'pau@gmail.com', password: '123', role: 'USER', created_at: '2026-01-03T14:15:00Z' },
-  { id: 'usr_laura', username: 'Laura', email: 'laura@gmail.com', password: '123', role: 'USER', created_at: '2026-01-04T08:00:00Z' },
-  { id: 'usr_miquel', username: 'Miquel', email: 'miquel@gmail.com', password: '123', role: 'USER', created_at: '2026-01-04T16:20:00Z' }
-];
+// Pessebres inicials nets: a partir d'ara només els que s'afegeixin i s'aprovin
+const SEED_POINTS = [];
+const SEED_VISITS = [];
 
-const SEED_POINTS = [
-  { id: 'pt_1', name: 'EL DEL SENGLAR', municipality: 'Sant Feliu Sasserra', latitude: 41.9560, longitude: 2.0080, description: 'Pessebre a la solana de la muntanya.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-02T10:00:00Z' },
-  { id: 'pt_2', name: 'LES GUILLERIES', municipality: 'Sant Feliu Sasserra', latitude: 41.9580, longitude: 2.0120, description: 'Ubicat al camí de les Guilleries.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-02T12:30:00Z' },
-  { id: 'pt_3', name: 'BALMA DE LES PASTORELLES', municipality: 'Sant Feliu Sasserra', latitude: 41.9565, longitude: 2.0200, description: 'Dins la bauma natural de les pastorelles.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-03T09:00:00Z' },
-  { id: 'pt_4', name: 'BARRACA HORTA DE FONTARMONA', municipality: 'Sant Feliu Sasserra', latitude: 41.9500, longitude: 2.0170, description: 'Junt a la vinya i l\'horta antiga.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-03T14:00:00Z' },
-  { id: 'pt_5', name: 'SANTA MAGDALENA', municipality: 'Sant Feliu Sasserra', latitude: 41.9485, longitude: 2.0120, description: 'Pessebre rústic als peus del turó.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-04T08:30:00Z' },
-  { id: 'pt_6', name: 'ESGLÉSIA DE SANT FELIU SASSERRA', municipality: 'Sant Feliu Sasserra', latitude: 41.9455, longitude: 2.0210, description: 'Pessebre del nucli antic del poble.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-04T10:00:00Z' },
-  { id: 'pt_7', name: 'BAUMA DEL CÀNTIR', municipality: 'Sant Feliu Sasserra', latitude: 41.9460, longitude: 2.0175, description: 'Amagat a la bauma del càntir.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-04T15:00:00Z' },
-  { id: 'pt_8', name: 'FONT FORRIOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9440, longitude: 2.0150, description: 'Als peus del rajaire de la font.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-05T09:15:00Z' },
-  { id: 'pt_9', name: 'ROURE CENTENÀRI', municipality: 'Sant Feliu Sasserra', latitude: 41.9420, longitude: 2.0130, description: 'Sota l\'ombra del roure centenari.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-05T11:45:00Z' },
-  { id: 'pt_10', name: 'FONT DE LA CORDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9405, longitude: 2.0195, description: 'Costat de la font de la corda.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-05T14:20:00Z' },
-  { id: 'pt_11', name: 'BAUMA SERRAT DEL MOLÍ DE BADIA', municipality: 'Sant Feliu Sasserra', latitude: 41.9390, longitude: 2.0240, description: 'Pessebre al molí de Badia.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-05T15:00:00Z' },
-  { id: 'pt_12', name: 'PUIGLLUSÀ', municipality: 'Sant Feliu Sasserra', latitude: 41.9520, longitude: 2.0250, description: 'Al cim de Puigllusà.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-05T15:30:00Z' },
-  { id: 'pt_13', name: 'BAUMA DE PAHONELLAS', municipality: 'Sant Feliu Sasserra', latitude: 41.9540, longitude: 2.0280, description: 'Pessebre tradicional en rocateres.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-05T16:00:00Z' },
-  { id: 'pt_14', name: 'SERRAT LLOBATER', municipality: 'Sant Feliu Sasserra', latitude: 41.9490, longitude: 2.0300, description: 'Pessebre a la cresta del serrat.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-05T16:30:00Z' },
-  { id: 'pt_15', name: 'FONT PERDUDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9430, longitude: 2.0310, description: 'Prop de la font perduda.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-05T17:00:00Z' },
-  { id: 'pt_16', name: 'MOLÍ DE LA RIBA', municipality: 'Sant Feliu Sasserra', latitude: 41.9380, longitude: 2.0290, description: 'Al vell molí de la riba.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-05T17:30:00Z' },
-  { id: 'pt_17', name: 'XUP DE LES SALERES DELS ARNAUS', municipality: 'Sant Feliu Sasserra', latitude: 41.9350, longitude: 2.0220, description: 'Pessebre a la zona del xup.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-05T18:00:00Z' },
-  { id: 'pt_18', name: 'FARIGOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9340, longitude: 2.0180, description: 'Envoltat de farigola del bosc.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-05T18:30:00Z' },
-  { id: 'pt_19', name: 'L\'OLIVERA DE CAL PRIM / CAL BASTÓ', municipality: 'Sant Feliu Sasserra', latitude: 41.9320, longitude: 2.0140, description: 'Al peu de l\'olivera centenària.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-05T19:00:00Z' }
-];
-
-const SEED_VISITS = [
-  { id: 'v1', user_id: 'usr_marc', nativity_point_id: 'pt_1', created_at: '2026-01-02T11:30:00Z' },
-  { id: 'v2', user_id: 'usr_marc', nativity_point_id: 'pt_2', created_at: '2026-01-02T14:00:00Z' },
-  { id: 'v3', user_id: 'usr_marc', nativity_point_id: 'pt_3', created_at: '2026-01-03T10:00:00Z' },
-  { id: 'v4', user_id: 'usr_marc', nativity_point_id: 'pt_4', created_at: '2026-01-03T16:00:00Z' },
-  { id: 'v5', user_id: 'usr_marc', nativity_point_id: 'pt_5', created_at: '2026-01-04T09:00:00Z' },
-  { id: 'v6', user_id: 'usr_marc', nativity_point_id: 'pt_6', created_at: '2026-01-04T12:00:00Z' },
-  { id: 'v7', user_id: 'usr_marc', nativity_point_id: 'pt_7', created_at: '2026-01-04T17:00:00Z' },
-  { id: 'v8', user_id: 'usr_marc', nativity_point_id: 'pt_8', created_at: '2026-01-05T10:00:00Z' },
-  { id: 'v9', user_id: 'usr_marc', nativity_point_id: 'pt_9', created_at: '2026-01-05T13:00:00Z' },
-  { id: 'v10', user_id: 'usr_marc', nativity_point_id: 'pt_10', created_at: '2026-01-05T15:00:00Z' },
-  { id: 'v11', user_id: 'usr_anna', nativity_point_id: 'pt_1', created_at: '2026-01-02T12:00:00Z' },
-  { id: 'v12', user_id: 'usr_anna', nativity_point_id: 'pt_2', created_at: '2026-01-02T15:00:00Z' },
-  { id: 'v13', user_id: 'usr_anna', nativity_point_id: 'pt_4', created_at: '2026-01-03T17:00:00Z' },
-  { id: 'v14', user_id: 'usr_anna', nativity_point_id: 'pt_5', created_at: '2026-01-04T10:00:00Z' },
-  { id: 'v15', user_id: 'usr_anna', nativity_point_id: 'pt_6', created_at: '2026-01-04T13:00:00Z' },
-  { id: 'v16', user_id: 'usr_anna', nativity_point_id: 'pt_8', created_at: '2026-01-05T11:00:00Z' },
-  { id: 'v17', user_id: 'usr_anna', nativity_point_id: 'pt_10', created_at: '2026-01-05T16:00:00Z' },
-  { id: 'v18', user_id: 'usr_jordi', nativity_point_id: 'pt_1', created_at: '2026-01-03T11:00:00Z' },
-  { id: 'v19', user_id: 'usr_jordi', nativity_point_id: 'pt_3', created_at: '2026-01-03T12:00:00Z' },
-  { id: 'v20', user_id: 'usr_jordi', nativity_point_id: 'pt_5', created_at: '2026-01-04T11:00:00Z' },
-  { id: 'v21', user_id: 'usr_jordi', nativity_point_id: 'pt_7', created_at: '2026-01-04T18:00:00Z' },
-  { id: 'v22', user_id: 'usr_jordi', nativity_point_id: 'pt_9', created_at: '2026-01-05T14:00:00Z' },
-  { id: 'v23', user_id: 'usr_pau', nativity_point_id: 'pt_2', created_at: '2026-01-03T15:00:00Z' },
-  { id: 'v24', user_id: 'usr_pau', nativity_point_id: 'pt_4', created_at: '2026-01-03T18:00:00Z' },
-  { id: 'v25', user_id: 'usr_pau', nativity_point_id: 'pt_5', created_at: '2026-01-04T12:00:00Z' }
-];
+const ADMIN_CREDENTIALS = {
+  username: 'admin',
+  password: 'adminpessebres3726c9b'
+};
 
 class PessebresDB {
   constructor() {
@@ -80,28 +28,27 @@ class PessebresDB {
   }
 
   init() {
-    // 1. Inicialització LocalStorage (sempre com a cau local d'alta velocitat)
+    // 1. Neteja de dades antigues de prova si cal
+    if (localStorage.getItem('pessebres_clean_v3') !== 'true') {
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify([]));
+      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify([]));
+      localStorage.removeItem(DB_KEYS.CURRENT_USER);
+      localStorage.setItem('pessebres_clean_v3', 'true');
+    }
+
     if (!localStorage.getItem(DB_KEYS.USERS)) {
-      localStorage.setItem(DB_KEYS.USERS, JSON.stringify(SEED_USERS));
+      localStorage.setItem(DB_KEYS.USERS, JSON.stringify([
+        { id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', role: 'ADMIN', created_at: new Date().toISOString() }
+      ]));
     }
-    
-    const currentPoints = localStorage.getItem(DB_KEYS.POINTS);
-    if (!currentPoints || !currentPoints.includes('SENGLAR')) {
-      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(SEED_POINTS));
-      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(SEED_VISITS));
+    if (!localStorage.getItem(DB_KEYS.POINTS)) {
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify([]));
     }
-
     if (!localStorage.getItem(DB_KEYS.VISITS)) {
-      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(SEED_VISITS));
+      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify([]));
     }
 
-    // Default current user if none
-    if (!localStorage.getItem(DB_KEYS.CURRENT_USER)) {
-      const defaultUser = SEED_USERS.find(u => u.username === 'Marc');
-      localStorage.setItem(DB_KEYS.CURRENT_USER, JSON.stringify(defaultUser));
-    }
-
-    // 2. Comprovar si tenim configurat Supabase
+    // 2. Connectar a Supabase si s'ha configurat
     const cfg = window.SUPABASE_CONFIG;
     if (cfg && cfg.url && cfg.anonKey && cfg.url.startsWith('http') && window.supabase) {
       try {
@@ -111,10 +58,8 @@ class PessebresDB {
         this.syncFromCloud();
         this.subscribeRealtime();
       } catch (err) {
-        console.warn("⚠️ No s'ha pogut connectar a Supabase. S'utilitza mode local:", err);
+        console.warn("⚠️ Error en connectar a Supabase. S'utilitza mode local:", err);
       }
-    } else {
-      console.log("📁 Executant en mode LocalStorage (Configura config.js per connectar a Supabase)");
     }
   }
 
@@ -131,21 +76,19 @@ class PessebresDB {
       if (!resUsers.error && resUsers.data) {
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(resUsers.data));
       }
-      if (!resPoints.error && resPoints.data && resPoints.data.length > 0) {
+      if (!resPoints.error && resPoints.data) {
         localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(resPoints.data));
       }
       if (!resVisits.error && resVisits.data) {
         localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(resVisits.data));
       }
 
-      // Notifiquem a l'aplicació per refrescar mapa, rànquing i estadístiques
       window.dispatchEvent(new CustomEvent('db:changed'));
     } catch (e) {
       console.warn("Error en sincronitzar des de Supabase:", e);
     }
   }
 
-  // Subscripció en temps real (WebSockets de Supabase)
   subscribeRealtime() {
     if (!this.isCloudEnabled || !this.supabase) return;
     try {
@@ -161,20 +104,11 @@ class PessebresDB {
         })
         .subscribe();
     } catch (e) {
-      console.warn("No s'ha pogut activar realtime:", e);
+      console.warn("Realtime no disponible:", e);
     }
   }
 
-  // --- RESTAURAR DADES DE PROVA ---
-  resetToDefaults() {
-    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(SEED_USERS));
-    localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(SEED_POINTS));
-    localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(SEED_VISITS));
-    localStorage.setItem(DB_KEYS.CURRENT_USER, JSON.stringify(SEED_USERS[1]));
-    window.dispatchEvent(new CustomEvent('db:changed'));
-  }
-
-  // --- USERS ---
+  // --- USERS & AUTH ---
   getUsers() {
     return JSON.parse(localStorage.getItem(DB_KEYS.USERS) || '[]');
   }
@@ -193,16 +127,63 @@ class PessebresDB {
     window.dispatchEvent(new CustomEvent('db:changed'));
   }
 
-  async registerUser(username, email, password) {
-    const users = this.getUsers();
-    const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase() || (u.email && u.email.toLowerCase() === email.toLowerCase()));
-    if (existing) {
-      throw new Error('Ja existeix un usuari amb aquest nom o email.');
+  async loginUser(username, password) {
+    const userTerm = username.trim();
+    if (!userTerm) throw new Error("Introdueix un nom d'usuari.");
+    if (!password) throw new Error("Introdueix la contrasenya.");
+
+    // 1. Verificació d'Administrador
+    if (userTerm.toLowerCase() === ADMIN_CREDENTIALS.username) {
+      if (password === ADMIN_CREDENTIALS.password) {
+        const adminUser = {
+          id: 'usr_admin',
+          username: 'admin',
+          email: 'admin@pessebres.cat',
+          role: 'ADMIN',
+          created_at: new Date().toISOString()
+        };
+        this.setCurrentUser(adminUser);
+        return adminUser;
+      } else {
+        throw new Error("Contrasenya d'administrador incorrecta.");
+      }
     }
+
+    // 2. Usuari normal
+    const users = this.getUsers();
+    const existing = users.find(u => u.username.toLowerCase() === userTerm.toLowerCase());
+    if (!existing) {
+      throw new Error("No s'ha trobat cap compte amb aquest nom. Registra't si ets nou!");
+    }
+
+    if (existing.password && existing.password !== password) {
+      throw new Error("Contrasenya incorrecta.");
+    }
+
+    this.setCurrentUser(existing);
+    return existing;
+  }
+
+  async registerUser(username, password) {
+    const userTerm = username.trim();
+    if (!userTerm) throw new Error("Cal indicar un nom d'usuari.");
+    if (!password || password.length < 3) throw new Error("La contrasenya ha de tenir com a mínim 3 caràcters.");
+
+    if (userTerm.toLowerCase() === 'admin') {
+      throw new Error("El nom 'admin' està reservat.");
+    }
+
+    const users = this.getUsers();
+    const existing = users.find(u => u.username.toLowerCase() === userTerm.toLowerCase());
+    if (existing) {
+      throw new Error("Ja existeix un compte amb aquest nom. Inicia sessió.");
+    }
+
     const newUser = {
       id: 'usr_' + Date.now(),
-      username: username.trim(),
-      email: email.trim().toLowerCase(),
+      username: userTerm,
+      password: password,
+      email: userTerm.toLowerCase().replace(/\s+/g, '.') + '@pessebres.cat',
       role: 'USER',
       created_at: new Date().toISOString()
     };
@@ -212,21 +193,20 @@ class PessebresDB {
     this.setCurrentUser(newUser);
 
     if (this.isCloudEnabled && this.supabase) {
-      await this.supabase.from('users').insert([newUser]);
+      try {
+        const { error } = await this.supabase.from('users').insert([newUser]);
+        if (error && error.message && error.message.includes('password')) {
+          // Si a la BD no s'ha creat la columna password, inserim sense per no fallar
+          const { password: _, ...userNoPass } = newUser;
+          await this.supabase.from('users').insert([userNoPass]);
+        }
+      } catch (err) {
+        console.warn("Error en guardar usuari a Supabase:", err);
+      }
     }
 
+    window.dispatchEvent(new CustomEvent('db:changed'));
     return newUser;
-  }
-
-  loginUser(emailOrUsername, password) {
-    const users = this.getUsers();
-    const term = emailOrUsername.trim().toLowerCase();
-    const user = users.find(u => (u.email && u.email.toLowerCase() === term) || u.username.toLowerCase() === term);
-    if (!user) {
-      throw new Error('Usuari no trobat.');
-    }
-    this.setCurrentUser(user);
-    return user;
   }
 
   logout() {
@@ -261,7 +241,7 @@ class PessebresDB {
       longitude: parseFloat(data.longitude),
       description: data.description ? data.description.trim() : '',
       submitted_by: data.submitted_by ? data.submitted_by.trim() : 'Anònim',
-      status: 'PENDING',
+      status: 'PENDING', // Totes les propostes comencen en PENDING fins que l'admin les aprova
       created_at: new Date().toISOString()
     };
     points.push(newPoint);
@@ -335,6 +315,7 @@ class PessebresDB {
 
     if (this.isCloudEnabled && this.supabase) {
       await this.supabase.from('nativity_points').delete().eq('id', id);
+      await this.supabase.from('visits').delete().eq('nativity_point_id', id);
     }
 
     window.dispatchEvent(new CustomEvent('db:changed'));
@@ -370,7 +351,6 @@ class PessebresDB {
     const existingIndex = visits.findIndex(v => v.user_id === userId && v.nativity_point_id === pointId);
 
     if (existingIndex !== -1) {
-      const removedVisit = visits[existingIndex];
       visits.splice(existingIndex, 1);
       localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(visits));
 
@@ -402,50 +382,17 @@ class PessebresDB {
   // --- ESTADÍSTIQUES ---
   getStats() {
     const approvedPoints = this.getApprovedPoints();
-    const users = this.getUsers();
-    const uniqueMunicipalities = new Set(approvedPoints.map(p => p.municipality.trim().toLowerCase()));
+    const users = this.getUsers().filter(u => u.role !== 'ADMIN');
 
     return {
       approvedCount: approvedPoints.length,
-      usersCount: users.length,
-      municipalitiesCount: uniqueMunicipalities.size
+      usersCount: users.length
     };
-  }
-
-  async loginOrRegisterQuickUser(fullName, email = '') {
-    const name = fullName.trim();
-    if (!name) throw new Error("Cal introduir un nom vàlid.");
-
-    const users = this.getUsers();
-    const existing = users.find(u => u.username.toLowerCase() === name.toLowerCase());
-
-    if (existing) {
-      this.setCurrentUser(existing);
-      return existing;
-    }
-
-    const newUser = {
-      id: 'usr_' + Date.now(),
-      username: name,
-      email: email ? email.trim().toLowerCase() : (name.toLowerCase().replace(/\s+/g, '.') + '@gmail.com'),
-      role: 'USER',
-      created_at: new Date().toISOString()
-    };
-    users.push(newUser);
-    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
-    this.setCurrentUser(newUser);
-
-    if (this.isCloudEnabled && this.supabase) {
-      await this.supabase.from('users').insert([newUser]);
-    }
-
-    window.dispatchEvent(new CustomEvent('db:changed'));
-    return newUser;
   }
 
   // --- RÀNQUINGS ---
   getLeaderboard() {
-    const users = this.getUsers();
+    const users = this.getUsers().filter(u => u.role !== 'ADMIN');
     const visits = this.getVisits();
 
     const userVisitCounts = {};
@@ -474,7 +421,7 @@ class PessebresDB {
   }
 
   getCreatedLeaderboard() {
-    const users = this.getUsers();
+    const users = this.getUsers().filter(u => u.role !== 'ADMIN');
     const points = this.getApprovedPoints();
 
     const userCreatedCounts = {};
