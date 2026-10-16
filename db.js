@@ -11,26 +11,27 @@ const DB_KEYS = {
 };
 
 // 19 Pessebres oficials de Sant Feliu Sasserra
+// 19 Pessebres oficials de Sant Feliu Sasserra
 const SEED_POINTS = [
-  { id: 'pt_1', name: 'EL DEL SENGLAR', municipality: 'Sant Feliu Sasserra', latitude: 41.9560, longitude: 2.0080, description: 'Pessebre a la solana de la muntanya.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-02T10:00:00Z' },
-  { id: 'pt_2', name: 'LES GUILLERIES', municipality: 'Sant Feliu Sasserra', latitude: 41.9580, longitude: 2.0120, description: 'Ubicat al camí de les Guilleries.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-02T12:30:00Z' },
-  { id: 'pt_3', name: 'BALMA DE LES PASTORELLES', municipality: 'Sant Feliu Sasserra', latitude: 41.9565, longitude: 2.0200, description: 'Dins la bauma natural de les pastorelles.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-03T09:00:00Z' },
-  { id: 'pt_4', name: 'BARRACA HORTA DE FONTARMONA', municipality: 'Sant Feliu Sasserra', latitude: 41.9500, longitude: 2.0170, description: 'Junt a la vinya i l\'horta antiga.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-03T14:00:00Z' },
-  { id: 'pt_5', name: 'SANTA MAGDALENA', municipality: 'Sant Feliu Sasserra', latitude: 41.9485, longitude: 2.0120, description: 'Pessebre rústic als peus del turó.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-04T08:30:00Z' },
-  { id: 'pt_6', name: 'ESGLÉSIA DE SANT FELIU SASSERRA', municipality: 'Sant Feliu Sasserra', latitude: 41.9455, longitude: 2.0210, description: 'Pessebre del nucli antic del poble.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-04T10:00:00Z' },
-  { id: 'pt_7', name: 'BAUMA DEL CÀNTIR', municipality: 'Sant Feliu Sasserra', latitude: 41.9460, longitude: 2.0175, description: 'Amagat a la bauma del càntir.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-04T15:00:00Z' },
-  { id: 'pt_8', name: 'FONT FORRIOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9440, longitude: 2.0150, description: 'Als peus del rajaire de la font.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-05T09:15:00Z' },
-  { id: 'pt_9', name: 'ROURE CENTENÀRI', municipality: 'Sant Feliu Sasserra', latitude: 41.9420, longitude: 2.0130, description: 'Sota l\'ombra del roure centenari.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-05T11:45:00Z' },
-  { id: 'pt_10', name: 'FONT DE LA CORDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9405, longitude: 2.0195, description: 'Costat de la font de la corda.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-05T14:20:00Z' },
-  { id: 'pt_11', name: 'BAUMA SERRAT DEL MOLÍ DE BADIA', municipality: 'Sant Feliu Sasserra', latitude: 41.9390, longitude: 2.0240, description: 'Pessebre al molí de Badia.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-05T15:00:00Z' },
-  { id: 'pt_12', name: 'PUIGLLUSÀ', municipality: 'Sant Feliu Sasserra', latitude: 41.9520, longitude: 2.0250, description: 'Al cim de Puigllusà.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-05T15:30:00Z' },
-  { id: 'pt_13', name: 'BAUMA DE PAHONELLAS', municipality: 'Sant Feliu Sasserra', latitude: 41.9540, longitude: 2.0280, description: 'Pessebre tradicional en rocateres.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-05T16:00:00Z' },
-  { id: 'pt_14', name: 'SERRAT LLOBATER', municipality: 'Sant Feliu Sasserra', latitude: 41.9490, longitude: 2.0300, description: 'Pessebre a la cresta del serrat.', submitted_by: 'Anna', status: 'APPROVED', created_at: '2026-01-05T16:30:00Z' },
-  { id: 'pt_15', name: 'FONT PERDUDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9430, longitude: 2.0310, description: 'Prop de la font perduda.', submitted_by: 'Jordi', status: 'APPROVED', created_at: '2026-01-05T17:00:00Z' },
-  { id: 'pt_16', name: 'MOLÍ DE LA RIBA', municipality: 'Sant Feliu Sasserra', latitude: 41.9380, longitude: 2.0290, description: 'Al vell molí de la riba.', submitted_by: 'Laura', status: 'APPROVED', created_at: '2026-01-05T17:30:00Z' },
-  { id: 'pt_17', name: 'XUP DE LES SALERES DELS ARNAUS', municipality: 'Sant Feliu Sasserra', latitude: 41.9350, longitude: 2.0220, description: 'Pessebre a la zona del xup.', submitted_by: 'Marc', status: 'APPROVED', created_at: '2026-01-05T18:00:00Z' },
-  { id: 'pt_18', name: 'FARIGOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9340, longitude: 2.0180, description: 'Envoltat de farigola del bosc.', submitted_by: 'Pau', status: 'APPROVED', created_at: '2026-01-05T18:30:00Z' },
-  { id: 'pt_19', name: 'L\'OLIVERA DE CAL PRIM / CAL BASTÓ', municipality: 'Sant Feliu Sasserra', latitude: 41.9320, longitude: 2.0140, description: 'Al peu de l\'olivera centenària.', submitted_by: 'Miquel', status: 'APPROVED', created_at: '2026-01-05T19:00:00Z' }
+  { id: 'pt_1', name: 'EL DEL SENGLAR', municipality: 'Sant Feliu Sasserra', latitude: 41.9560, longitude: 2.0080, description: 'Pessebre a la solana de la muntanya.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-02T10:00:00Z' },
+  { id: 'pt_2', name: 'LES GUILLERIES', municipality: 'Sant Feliu Sasserra', latitude: 41.9580, longitude: 2.0120, description: 'Ubicat al camí de les Guilleries.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-02T12:30:00Z' },
+  { id: 'pt_3', name: 'BALMA DE LES PASTORELLES', municipality: 'Sant Feliu Sasserra', latitude: 41.9565, longitude: 2.0200, description: 'Dins la bauma natural de les pastorelles.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-03T09:00:00Z' },
+  { id: 'pt_4', name: 'BARRACA HORTA DE FONTARMONA', municipality: 'Sant Feliu Sasserra', latitude: 41.9500, longitude: 2.0170, description: 'Junt a la vinya i l\'horta antiga.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-03T14:00:00Z' },
+  { id: 'pt_5', name: 'SANTA MAGDALENA', municipality: 'Sant Feliu Sasserra', latitude: 41.9485, longitude: 2.0120, description: 'Pessebre rústic als peus del turó.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-04T08:30:00Z' },
+  { id: 'pt_6', name: 'ESGLÉSIA DE SANT FELIU SASSERRA', municipality: 'Sant Feliu Sasserra', latitude: 41.9455, longitude: 2.0210, description: 'Pessebre del nucli antic del poble.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-04T10:00:00Z' },
+  { id: 'pt_7', name: 'BAUMA DEL CÀNTIR', municipality: 'Sant Feliu Sasserra', latitude: 41.9460, longitude: 2.0175, description: 'Amagat a la bauma del càntir.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-04T15:00:00Z' },
+  { id: 'pt_8', name: 'FONT FORRIOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9440, longitude: 2.0150, description: 'Als peus del rajaire de la font.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T09:15:00Z' },
+  { id: 'pt_9', name: 'ROURE CENTENÀRI', municipality: 'Sant Feliu Sasserra', latitude: 41.9420, longitude: 2.0130, description: 'Sota l\'ombra del roure centenari.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T11:45:00Z' },
+  { id: 'pt_10', name: 'FONT DE LA CORDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9405, longitude: 2.0195, description: 'Costat de la font de la corda.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T14:20:00Z' },
+  { id: 'pt_11', name: 'BAUMA SERRAT DEL MOLÍ DE BADIA', municipality: 'Sant Feliu Sasserra', latitude: 41.9390, longitude: 2.0240, description: 'Pessebre al molí de Badia.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T15:00:00Z' },
+  { id: 'pt_12', name: 'PUIGLLUSÀ', municipality: 'Sant Feliu Sasserra', latitude: 41.9520, longitude: 2.0250, description: 'Al cim de Puigllusà.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T15:30:00Z' },
+  { id: 'pt_13', name: 'BAUMA DE PAHONELLAS', municipality: 'Sant Feliu Sasserra', latitude: 41.9540, longitude: 2.0280, description: 'Pessebre tradicional en rocateres.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T16:00:00Z' },
+  { id: 'pt_14', name: 'SERRAT LLOBATER', municipality: 'Sant Feliu Sasserra', latitude: 41.9490, longitude: 2.0300, description: 'Pessebre a la cresta del serrat.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T16:30:00Z' },
+  { id: 'pt_15', name: 'FONT PERDUDA', municipality: 'Sant Feliu Sasserra', latitude: 41.9430, longitude: 2.0310, description: 'Prop de la font perduda.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T17:00:00Z' },
+  { id: 'pt_16', name: 'MOLÍ DE LA RIBA', municipality: 'Sant Feliu Sasserra', latitude: 41.9380, longitude: 2.0290, description: 'Al vell molí de la riba.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T17:30:00Z' },
+  { id: 'pt_17', name: 'XUP DE LES SALERES DELS ARNAUS', municipality: 'Sant Feliu Sasserra', latitude: 41.9350, longitude: 2.0220, description: 'Pessebre a la zona del xup.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T18:00:00Z' },
+  { id: 'pt_18', name: 'FARIGOLA', municipality: 'Sant Feliu Sasserra', latitude: 41.9340, longitude: 2.0180, description: 'Envoltat de farigola del bosc.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T18:30:00Z' },
+  { id: 'pt_19', name: 'L\'OLIVERA DE CAL PRIM / CAL BASTÓ', municipality: 'Sant Feliu Sasserra', latitude: 41.9320, longitude: 2.0140, description: 'Al peu de l\'olivera centenària.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T19:00:00Z' }
 ];
 
 const ADMIN_CREDENTIALS = {
@@ -46,17 +47,33 @@ class PessebresDB {
   }
 
   init() {
-    // 1. Assegurar dades inicials a localStorage
+    // 1. Assegurar dades inicials a localStorage (netejat de noms inventats)
     const currentPoints = localStorage.getItem(DB_KEYS.POINTS);
     if (!currentPoints || JSON.parse(currentPoints).length === 0) {
       localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(SEED_POINTS));
+    } else {
+      const fakeAuthors = ['Marc', 'Anna', 'Jordi', 'Pau', 'Laura', 'Miquel'];
+      const pts = JSON.parse(currentPoints).map(p => ({
+        ...p,
+        submitted_by: fakeAuthors.includes(p.submitted_by) ? 'Organització' : (p.submitted_by || 'Organització')
+      }));
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(pts));
     }
 
-    if (!localStorage.getItem(DB_KEYS.USERS)) {
+    // Netejar usuaris inventats de localStorage i deixar participants a 0
+    const storedUsers = localStorage.getItem(DB_KEYS.USERS);
+    if (!storedUsers) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify([
         { id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', role: 'ADMIN', created_at: new Date().toISOString() }
       ]));
+    } else {
+      const cleanUsers = JSON.parse(storedUsers).filter(u => u.username === 'admin');
+      if (cleanUsers.length === 0) {
+        cleanUsers.push({ id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', role: 'ADMIN', created_at: new Date().toISOString() });
+      }
+      localStorage.setItem(DB_KEYS.USERS, JSON.stringify(cleanUsers));
     }
+
     if (!localStorage.getItem(DB_KEYS.VISITS)) {
       localStorage.setItem(DB_KEYS.VISITS, JSON.stringify([]));
     }

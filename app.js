@@ -154,9 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="pessebre-popup-muni">📍 ${escapeHTML(point.municipality)}</div>
           </div>
           ${point.description ? `<p class="pessebre-popup-desc">"${escapeHTML(point.description)}"</p>` : ''}
-          <div class="pessebre-popup-author">
-            👤 Afegit per <strong>@${escapeHTML(point.submitted_by)}</strong>
-          </div>
+          ${point.submitted_by && !['Organització', 'admin', 'Oficial', 'Anònim'].includes(point.submitted_by) ? `
+            <div class="pessebre-popup-author">
+              👤 Proposat per <strong>@${escapeHTML(point.submitted_by)}</strong>
+            </div>
+          ` : ''}
           <div class="pessebre-popup-stats">
             👥 <span><strong>${visitCount}</strong> persones hi han anat</span>
           </div>
