@@ -332,11 +332,11 @@ body {
   .index-panel-list.is-multicol {
     display: grid;
     grid-auto-flow: column;
-    grid-template-columns: repeat(2, 200px);
+    grid-template-columns: repeat(2, 240px);
     column-gap: 16px;
   }
   .floating-index-panel:has(.is-multicol) {
-    max-width: 440px;
+    max-width: 510px;
   }
   .index-panel-list.is-multicol .index-item {
     font-size: var(--idx-fs, 0.78rem);

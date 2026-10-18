@@ -840,13 +840,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const header = document.querySelector('.index-panel-header');
     const pdfBtn = document.getElementById('btn-drawer-pdf');
-    const reserved = 24 + 110 + (header ? header.offsetHeight + 12 : 0) + (pdfBtn ? pdfBtn.offsetHeight + 12 : 0);
+    const reserved = 24 + 70 + (header ? header.offsetHeight + 12 : 0) + (pdfBtn ? pdfBtn.offsetHeight + 12 : 0);
     const avail = window.innerHeight - reserved;
     if (ul.scrollHeight <= avail) return;
 
     ul.classList.add('is-multicol');
     ul.style.gridTemplateRows = `repeat(${Math.ceil(ul.children.length / 2)}, auto)`;
-    for (let fs = 13; fs >= 8; fs -= 0.5) {
+    for (let fs = 15; fs >= 8; fs -= 0.5) {
       ul.style.setProperty('--idx-fs', fs + 'px');
       if (ul.scrollHeight <= avail) break;
     }
