@@ -1108,21 +1108,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return lines.length > 0 ? lines : [text];
       }
 
-      // 2 Columnes d'Índex
-      const col1X = idxX + 20;
-      const col2X = idxX + 430;
+      // Caixa d'informació pràctica enganxada a baix (posició calculada primer)
+      const infoLineSpacing = 30;
+      const infoH = 74 + 8 * infoLineSpacing + 16;
+      const infoY = idxY + idxH - 25 - infoH;
+
+      // Índex dinàmic: columnes i altura de fila segons l'espai disponible
       const startListY = idxY + 76;
-      const rowHeight = 78;
+      const listAvailH = infoY - 15 - startListY;
+      const minRowH = 58;
+      const numCols = Math.ceil(points.length / 2) * minRowH > listAvailH ? 3 : 2;
+      const perCol = Math.max(1, Math.ceil(points.length / numCols));
+      const rowHeight = Math.min(78, listAvailH / perCol);
+      const colW = (idxW - 40) / numCols;
+      const maxChars = numCols === 3 ? 15 : 23;
 
       points.forEach((pt, idx) => {
         const num = idx + 1;
-        const isCol1 = idx < 10;
-        const colX = isCol1 ? col1X : col2X;
-        const row = isCol1 ? idx : idx - 10;
+        const colIdx = Math.floor(idx / perCol);
+        const colX = idxX + 20 + colIdx * colW;
+        const row = idx % perCol;
         const itemY = startListY + (row * rowHeight);
 
         // Nom del pessebre (multi-línia si cal, MAI amb '...')
-        const nameLines = wrapText(pt.name, 23);
+        const nameLines = wrapText(pt.name, maxChars);
         const hasTwoLines = nameLines.length > 1;
 
         // Insígnia número (cercle vermell fosc)
@@ -1158,8 +1167,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Caixa d'informació pràctica
-      const infoY = idxY + 870;
-      const infoH = 440;
       ctx.fillStyle = '#f3ebe0';
       ctx.fillRect(idxX + 25, infoY, idxW - 50, infoH);
       ctx.strokeStyle = '#c4b49e';
@@ -1174,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       ctx.fillStyle = '#4a382c';
       ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      const lineSpacing = 34;
+      const lineSpacing = infoLineSpacing;
       let lineY = infoY + 74;
 
       const infoLines = [
