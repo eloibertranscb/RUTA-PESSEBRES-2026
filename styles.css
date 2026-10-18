@@ -324,7 +324,26 @@ body {
 .index-panel-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 6px 0 0;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #7a1a12 rgba(82, 36, 21, 0.1);
+}
+
+.index-panel-list::-webkit-scrollbar { width: 6px; }
+.index-panel-list::-webkit-scrollbar-thumb { background: #7a1a12; border-radius: 3px; }
+
+/* Amb molts pessebres: 2 columnes a l'ordinador */
+@media (min-width: 769px) {
+  .index-panel-list.is-long {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 18px;
+  }
+  .floating-index-panel:has(.is-long) {
+    max-width: 620px;
+  }
 }
 
 .index-item {
@@ -1690,6 +1709,11 @@ body {
 
   .floating-index-panel.is-collapsed .index-panel-content {
     display: none !important;
+  }
+
+  .index-panel-list {
+    max-height: none;
+    overflow: visible;
   }
 
   .index-item {

@@ -103,7 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const bounds = [];
 
     const indexUl = document.getElementById('index-panel-ul');
-    if (indexUl) indexUl.innerHTML = '';
+    if (indexUl) {
+      indexUl.innerHTML = '';
+      indexUl.classList.toggle('is-long', window.db.getApprovedPoints().length > 20);
+    }
 
     approvedPoints.forEach((point, idx) => {
       const number = idx + 1;
