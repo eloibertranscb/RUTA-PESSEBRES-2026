@@ -233,12 +233,32 @@ class PessebresDB {
 
   getApprovedPoints() {
     const pts = this.getPoints().filter(p => p.status === 'APPROVED');
-    return pts.sort((a, b) => {
+    pts.sort((a, b) => {
       const numA = parseInt(a.id.replace(/\D/g, ''), 10);
       const numB = parseInt(b.id.replace(/\D/g, ''), 10);
       if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
       return (a.created_at || '').localeCompare(b.created_at || '');
     });
+
+    // MODE PROVA: ?prova=60 afegeix pessebres ficticis NOMÉS en memòria (no es desen enlloc)
+    const prova = parseInt(new URLSearchParams(window.location.search).get('prova'), 10);
+    if (prova > pts.length) {
+      const noms = ['FONT DEL ROURE', 'CAL MASOVER DE LA SERRA ALTA', 'BAUMA GRAN', 'PLA DE LES ERES', 'MOLÍ VELL DEL TORRENT DE LA COMA', 'CAN PUJOL', 'ERMITA DE SANT JOAN', 'BARRACA DE PEDRA SECA DEL CAMÍ RAL'];
+      for (let i = pts.length; i < prova; i++) {
+        pts.push({
+          id: 'prova_' + (i + 1),
+          name: `${noms[i % noms.length]} ${i + 1}`,
+          municipality: 'Sant Feliu Sasserra',
+          latitude: 41.932 + ((i * 37) % 100) / 100 * 0.026,
+          longitude: 2.006 + ((i * 61) % 100) / 100 * 0.028,
+          description: 'Pessebre de prova',
+          submitted_by: 'Prova',
+          status: 'APPROVED',
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+    return pts;
   }
 
   getPendingPoints() {

@@ -1089,23 +1089,25 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.lineTo(idxX + idxW - 30, idxY + 60);
       ctx.stroke();
 
-      // Funció per trencar el nom en múltiples línies netament (MAI amb '...')
-      function wrapText(text, maxChars = 22) {
+      const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+      // Trenca el nom en línies segons l'amplada real en píxels (MAI amb '...')
+      function wrapPx(text, maxW) {
         if (!text) return [''];
-        if (text.length <= maxChars) return [text];
         const words = text.split(' ');
         const lines = [];
         let cur = '';
         for (const w of words) {
-          if ((cur + ' ' + w).trim().length <= maxChars) {
-            cur = (cur + ' ' + w).trim();
+          const test = cur ? cur + ' ' + w : w;
+          if (ctx.measureText(test).width <= maxW || !cur) {
+            cur = test;
           } else {
-            if (cur) lines.push(cur);
+            lines.push(cur);
             cur = w;
           }
         }
         if (cur) lines.push(cur);
-        return lines.length > 0 ? lines : [text];
+        return lines;
       }
 
       // Caixa d'informació pràctica enganxada a baix (posició calculada primer)
@@ -1113,57 +1115,86 @@ document.addEventListener('DOMContentLoaded', () => {
       const infoH = 74 + 8 * infoLineSpacing + 16;
       const infoY = idxY + idxH - 25 - infoH;
 
-      // Índex dinàmic: columnes i altura de fila segons l'espai disponible
+      // Índex dinàmic: busquem columnes + mida de lletra perquè tot hi càpiga
       const startListY = idxY + 76;
       const listAvailH = infoY - 15 - startListY;
-      const minRowH = 58;
-      const numCols = Math.ceil(points.length / 2) * minRowH > listAvailH ? 3 : 2;
-      const perCol = Math.max(1, Math.ceil(points.length / numCols));
-      const rowHeight = Math.min(78, listAvailH / perCol);
-      const colW = (idxW - 40) / numCols;
-      const maxChars = numCols === 3 ? 15 : 23;
 
-      points.forEach((pt, idx) => {
-        const num = idx + 1;
-        const colIdx = Math.floor(idx / perCol);
-        const colX = idxX + 20 + colIdx * colW;
-        const row = idx % perCol;
-        const itemY = startListY + (row * rowHeight);
-
-        // Nom del pessebre (multi-línia si cal, MAI amb '...')
-        const nameLines = wrapText(pt.name, maxChars);
-        const hasTwoLines = nameLines.length > 1;
-
-        // Insígnia número (cercle vermell fosc)
-        const badgeCenterY = itemY + (hasTwoLines ? 14 : 10);
-        ctx.beginPath();
-        ctx.arc(colX + 16, badgeCenterY, 15, 0, Math.PI * 2);
-        ctx.fillStyle = '#7a1a12';
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(num), colX + 16, badgeCenterY);
-
-        // Text títol del pessebre (línies completes sense ...)
-        ctx.fillStyle = '#2a1a14';
-        ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-
-        let curTextY = itemY;
-        nameLines.forEach((line) => {
-          ctx.fillText(line, colX + 38, curTextY);
-          curTextY += 19;
+      function buildLayout(numCols, fs) {
+        const colW = (idxW - 40) / numCols;
+        const badgeR = Math.round(fs * 0.95);
+        const textOffset = badgeR * 2 + 8;
+        const lineH = Math.round(fs * 1.25);
+        const authorH = Math.round(fs * 0.8) + 4;
+        const gap = Math.round(fs * 0.7);
+        ctx.font = `bold ${fs}px ${FONT}`;
+        const items = points.map(pt => {
+          const lines = wrapPx(pt.name, colW - textOffset - 10);
+          return { pt, lines, h: Math.max(lines.length * lineH + authorH, badgeR * 2) + gap };
         });
+        // Repartim seqüencialment per columnes equilibrant l'altura
+        const total = items.reduce((s, it) => s + it.h, 0);
+        const target = total / numCols;
+        const cols = [[]];
+        let acc = 0;
+        items.forEach(it => {
+          if (acc + it.h / 2 > target * cols.length && cols.length < numCols) cols.push([]);
+          cols[cols.length - 1].push(it);
+          acc += it.h;
+        });
+        const maxColH = Math.max(...cols.map(c => c.reduce((s, it) => s + it.h, 0)));
+        return { numCols, fs, colW, badgeR, textOffset, lineH, authorH, cols, fits: maxColH <= listAvailH };
+      }
 
-        // Subtítol autor a sota, més petit
-        const author = pt.submitted_by || 'Organització';
-        ctx.fillStyle = '#8c5338';
-        ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(`👤 ${author}`, colX + 38, curTextY + 1);
+      let layout = null;
+      outer:
+      for (let fs = 15; fs >= 9; fs--) {
+        for (let nc = 2; nc <= 4; nc++) {
+          const l = buildLayout(nc, fs);
+          if (l.fits) { layout = l; break outer; }
+        }
+      }
+      if (!layout) layout = buildLayout(4, 9);
+
+      let num = 0;
+      layout.cols.forEach((col, colIdx) => {
+        const colX = idxX + 20 + colIdx * layout.colW;
+        let itemY = startListY;
+        col.forEach(({ pt, lines, h }) => {
+          num++;
+          const { fs, badgeR, textOffset, lineH } = layout;
+
+          // Insígnia número (cercle vermell fosc)
+          const badgeCenterY = itemY + badgeR;
+          ctx.beginPath();
+          ctx.arc(colX + badgeR, badgeCenterY, badgeR, 0, Math.PI * 2);
+          ctx.fillStyle = '#7a1a12';
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = `900 ${fs}px ${FONT}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(num), colX + badgeR, badgeCenterY);
+
+          // Nom del pessebre
+          ctx.fillStyle = '#2a1a14';
+          ctx.font = `bold ${fs}px ${FONT}`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          let curTextY = itemY;
+          lines.forEach(line => {
+            ctx.fillText(line, colX + textOffset, curTextY);
+            curTextY += lineH;
+          });
+
+          // Subtítol autor a sota, més petit
+          const author = pt.submitted_by || 'Organització';
+          ctx.fillStyle = '#8c5338';
+          ctx.font = `600 ${Math.round(fs * 0.8)}px ${FONT}`;
+          ctx.fillText(`👤 ${author}`, colX + textOffset, curTextY + 1);
+
+          itemY += h;
+        });
       });
 
       // Caixa d'informació pràctica
