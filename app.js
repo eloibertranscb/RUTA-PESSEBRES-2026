@@ -103,10 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bounds = [];
 
     const indexUl = document.getElementById('index-panel-ul');
-    if (indexUl) {
-      indexUl.innerHTML = '';
-      indexUl.classList.toggle('is-long', window.db.getApprovedPoints().length > 20);
-    }
+    if (indexUl) indexUl.innerHTML = '';
 
     approvedPoints.forEach((point, idx) => {
       const number = idx + 1;
@@ -197,8 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (indexCountEl) indexCountEl.textContent = approvedPoints.length;
 
     if (approvedPoints.length === 0 && indexUl) {
-      indexUl.innerHTML = '<li class="index-panel-empty">Cap pessebre aprovat encara</li>';
+      indexUl.innerHTML = '<li class="index-panel-empty"></li>';
+      indexUl.firstChild.textContent = 'Cap pessebre aprovat encara';
     }
+
+    layoutIndexColumns();
 
     if (bounds.length > 0) {
       const isMobile = window.innerWidth <= 768;
@@ -827,6 +827,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('modal-admin').classList.contains('active')) {
       renderAdminPanel();
     }
+  });
+
+  // ÍNDEX SENSE SCROLL: si no hi cap en alçada, es reparteix en més columnes
+  function layoutIndexColumns() {
+    const ul = document.getElementById('index-panel-ul');
+    if (!ul) return;
+    ul.classList.remove('is-multicol');
+    ul.style.gridTemplateRows = '';
+    if (window.innerWidth <= 768) return;
+
+    const header = document.querySelector('.index-panel-header');
+    const pdfBtn = document.getElementById('btn-drawer-pdf');
+    const reserved = 24 + 110 + (header ? header.offsetHeight + 12 : 0) + (pdfBtn ? pdfBtn.offsetHeight + 12 : 0);
+    const avail = window.innerHeight - reserved;
+    if (ul.scrollHeight <= avail) return;
+
+    ul.classList.add('is-multicol');
+    const items = Array.from(ul.children);
+    const itemH = Math.max(...items.map(li => li.offsetHeight), 1);
+    const rows = Math.max(1, Math.floor(avail / itemH));
+    ul.style.gridTemplateRows = `repeat(${rows}, auto)`;
+  }
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layoutIndexColumns, 150);
   });
 
   // 13. GESTIÓ DEL DESPLEGABLE DE L'ÍNDEX A MÒBIL
