@@ -1859,3 +1859,113 @@ body {
   transform: translateY(1px);
 }
 
+/* ==========================================================================
+   SISTEMA DE VALORACIÓ AMB BOLES DE NADAL (1 A 5)
+   ========================================================================== */
+.pessebre-bauble-rating-box {
+  background: #fdf6ec;
+  border: 1.5px solid #e5b869;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.bauble-rating-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #522415;
+  margin-bottom: 8px;
+}
+
+.bauble-balls-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bauble-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bauble-btn:hover {
+  transform: scale(1.22) translateY(-2px);
+}
+
+.bauble-cap {
+  width: 9px;
+  height: 5px;
+  background: linear-gradient(90deg, #b8860b, #f3ce85, #b8860b);
+  border-radius: 2px 2px 0 0;
+  border: 1px solid #8a6d1b;
+  margin-bottom: -1px;
+  z-index: 2;
+}
+
+.bauble-globe {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  position: relative;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.bauble-shine {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+
+/* Bola de Nadal seleccionada (vermell brillant nadalenc amb vora daurada) */
+.bauble-btn.bauble-active .bauble-globe {
+  background: radial-gradient(circle at 35% 30%, #ff5252 0%, #c91818 55%, #7a0b0b 100%);
+  border: 1.5px solid #d4af37;
+  box-shadow: 0 3px 8px rgba(184, 20, 20, 0.45), 0 0 8px rgba(229, 184, 105, 0.6);
+}
+
+/* Bola de Nadal apagada (gris perla suau) */
+.bauble-btn.bauble-inactive .bauble-globe {
+  background: radial-gradient(circle at 35% 30%, #f1ece4 0%, #d5ccc0 65%, #b8ada0 100%);
+  border: 1.5px solid #b5a898;
+  opacity: 0.65;
+}
+
+.bauble-btn.bauble-inactive:hover .bauble-globe {
+  opacity: 0.95;
+  border-color: #c91818;
+}
+
+.bauble-rating-avg {
+  font-size: 0.76rem;
+  color: #665243;
+  margin-top: 2px;
+}
+
+.visited-list-item {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dbe6e1;
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+}
+
+

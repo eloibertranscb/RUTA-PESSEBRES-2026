@@ -95,8 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderApprovedMarkers();
   }
 
+  let openPopupPointId = null;
+
   // 2. RENDERITZAR MARCADORS NUMERATS I GESTIÓ D'ACCÉS
-  function renderApprovedMarkers() {
+  function renderApprovedMarkers(skipFitBounds = false) {
     markersGroup.clearLayers();
     const approvedPoints = window.db.getApprovedPoints();
     const currentUser = window.db.getCurrentUser();
@@ -109,18 +111,55 @@ document.addEventListener('DOMContentLoaded', () => {
       const number = idx + 1;
       const visitCount = window.db.getVisitCountForPoint(point.id);
       const isVisited = currentUser ? window.db.hasUserVisited(currentUser.id, point.id) : false;
+      const userRating = currentUser ? window.db.getUserRatingForPoint(currentUser.id, point.id) : 0;
+      const ratingStats = window.db.getPointRatingStats(point.id);
 
       const markerIcon = createNumberedMarkerIcon(number, isVisited);
       const marker = L.marker([point.latitude, point.longitude], { icon: markerIcon });
       bounds.push([point.latitude, point.longitude]);
       markerMap[point.id] = marker;
 
-      // SI NO ESTÀ REGISTRAT: NOU REQUISIT -> NOMÉS VEUEN EL PESSEBRE I EL NÚMERO, NO PODEN VALIDAR
+      marker.on('popupopen', () => { openPopupPointId = point.id; });
+      marker.on('popupclose', () => { if (openPopupPointId === point.id) openPopupPointId = null; });
+
+      // Boles de Nadal (1 a 5) per valorar el pessebre (no influeix al rànquing)
+      let ballsHtml = '';
+      for (let b = 1; b <= 5; b++) {
+        const isActive = currentUser ? (b <= userRating) : (b <= Math.round(ratingStats.average));
+        const activeClass = isActive ? 'bauble-active' : 'bauble-inactive';
+        const clickAttr = currentUser
+          ? `onclick="handleRateClick('${point.id}', ${b})"`
+          : `onclick="window.openAuthModal()"`;
+        ballsHtml += `
+          <button type="button" class="bauble-btn ${activeClass}" ${clickAttr} title="${b} ${b === 1 ? 'bola de Nadal' : 'boles de Nadal'}">
+            <span class="bauble-cap"></span>
+            <span class="bauble-globe"><span class="bauble-shine"></span></span>
+          </button>
+        `;
+      }
+
+      const ratingSummaryText = ratingStats.count > 0
+        ? `<strong>${ratingStats.average}</strong> / 5 (${ratingStats.count} ${ratingStats.count === 1 ? 'vot' : 'vots'})`
+        : ' Sigues el primer a valorar-lo!';
+
+      const userRatingLabel = currentUser
+        ? (userRating > 0 ? `La teva valoració: <strong>${userRating} / 5 🔴</strong>` : ' Toca les boles de Nadal per valorar (1-5):')
+        : ' Identifica\'t per posar boles de Nadal:';
+
+      const ratingSectionHtml = `
+        <div class="pessebre-bauble-rating-box">
+          <div class="bauble-rating-label">${userRatingLabel}</div>
+          <div class="bauble-balls-row">${ballsHtml}</div>
+          <div class="bauble-rating-avg">🔴 Mitjana: ${ratingSummaryText}</div>
+        </div>
+      `;
+
+      // SI NO ESTÀ REGISTRAT: NOMÉS VEUEN EL PESSEBRE I EL NÚMERO, NO PODEN VALIDAR
       let actionButtonsHtml = '';
       if (!currentUser) {
         actionButtonsHtml = `
           <div class="pessebre-popup-lock-msg">
-            <span>🔒 Identifica't per poder validar aquest pessebre</span>
+            <span>🔒 Identifica't per poder validar o valorar aquest pessebre</span>
             <button type="button" class="btn-popup-open-auth" onclick="window.openAuthModal()">
               👤 REGISTRA'T / ENTRAR
             </button>
@@ -152,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="pessebre-popup-header">
             <div class="pessebre-popup-badge-num">PESSEBRE #${number}</div>
             <h3 class="pessebre-popup-title">${escapeHTML(point.name)}</h3>
-            <div class="pessebre-popup-muni">📍 ${escapeHTML(point.municipality)}</div>
           </div>
           ${point.description ? `<p class="pessebre-popup-desc">"${escapeHTML(point.description)}"</p>` : ''}
           ${point.submitted_by && !['Organització', 'admin', 'Oficial', 'Anònim'].includes(point.submitted_by) ? `
@@ -163,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="pessebre-popup-stats">
             👥 <span><strong>${visitCount}</strong> persones hi han anat</span>
           </div>
+          ${ratingSectionHtml}
           ${actionButtonsHtml}
         </div>
       `;
@@ -200,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     layoutIndexColumns();
 
-    if (bounds.length > 0) {
+    if (!skipFitBounds && bounds.length > 0) {
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
         map.fitBounds(bounds, {
@@ -213,11 +252,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    if (openPopupPointId && markerMap[openPopupPointId]) {
+      markerMap[openPopupPointId].openPopup();
+    }
+
     updateTopStats();
   }
 
-  // 3. ACCIÓ "HI HE ANAT" I "NO HI HE ANAT" (POLSADOR TOGGLE)
-  window.handleVisitClick = function(pointId) {
+  // 3. ACCIÓ "HI HE ANAT" I VALORACIÓ AMB BOLES DE NADAL
+  window.handleVisitClick = async function(pointId) {
     const currentUser = window.db.getCurrentUser();
     
     if (!currentUser) {
@@ -227,17 +270,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const result = window.db.toggleVisit(currentUser.id, pointId);
-      renderApprovedMarkers();
+      openPopupPointId = pointId;
+      const result = await window.db.toggleVisit(currentUser.id, pointId);
+      renderApprovedMarkers(true);
       updateTopStats();
       renderRankingTable();
       renderUserProfile();
       
       if (result.visited) {
-        showToast('🎉 Has marcat aquest pessebre com a visitat! (Marcador verd fosc)');
+        showToast('🎉 Has marcat aquest pessebre com a visitat!');
       } else {
-        showToast('❌ Has desmarcat aquest pessebre (No hi he anat - Marcador vermell fort)');
+        showToast('❌ Has desmarcat aquest pessebre.');
       }
+    } catch (err) {
+      showToast('⚠️ ' + err.message);
+    }
+  };
+
+  window.handleRateClick = async function(pointId, rating) {
+    const currentUser = window.db.getCurrentUser();
+    if (!currentUser) {
+      showToast('⚠️ Identifica\'t o registra\'t per valorar amb les boles de Nadal!');
+      window.openAuthModal();
+      return;
+    }
+
+    try {
+      openPopupPointId = pointId;
+      await window.db.ratePoint(currentUser.id, pointId, rating);
+      renderApprovedMarkers(true);
+      updateTopStats();
+      renderRankingTable();
+      renderUserProfile();
+      showToast(`🔴 Has valorat aquest pessebre amb ${rating} ${rating === 1 ? 'bola' : 'boles'} de Nadal!`);
     } catch (err) {
       showToast('⚠️ ' + err.message);
     }
@@ -501,10 +566,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pt) {
               const li = document.createElement('li');
               li.className = 'visited-list-item';
+              const ballsStr = v.rating ? '🔴'.repeat(Number(v.rating)) : '';
               li.innerHTML = `
                 <div>
                   <strong>🎄 ${escapeHTML(pt.name)}</strong>
-                  <div style="font-size:0.75rem; color:#666;">${escapeHTML(pt.municipality)}</div>
+                  ${ballsStr ? `<div style="font-size:0.75rem; margin-top:2px;">${ballsStr}</div>` : ''}
                 </div>
                 <span style="font-size:0.75rem; color:#0d4726; font-weight:800;">✓ Visitat</span>
               `;
@@ -645,12 +711,14 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLogout.addEventListener('click', doLogout);
   }
 
-  // 10. PANEL D'ADMINISTRACIÓ (ACCEPTAR / REBUTJAR / EDITAR / ELIMINAR)
+  // 10. PANEL D'ADMINISTRACIÓ (ACCEPTAR / REBUTJAR / EDITAR / ELIMINAR / USUARIS)
   const btnOpenAdmin = document.getElementById('btn-open-admin');
   const adminTabPending = document.getElementById('admin-tab-pending');
   const adminTabApproved = document.getElementById('admin-tab-approved');
+  const adminTabUsers = document.getElementById('admin-tab-users');
   const adminViewPending = document.getElementById('admin-view-pending');
   const adminViewApproved = document.getElementById('admin-view-approved');
+  const adminViewUsers = document.getElementById('admin-view-users');
 
   btnOpenAdmin.addEventListener('click', () => {
     renderAdminPanel();
@@ -660,23 +728,41 @@ document.addEventListener('DOMContentLoaded', () => {
   adminTabPending.addEventListener('click', () => {
     adminTabPending.classList.add('active');
     adminTabApproved.classList.remove('active');
+    if (adminTabUsers) adminTabUsers.classList.remove('active');
     adminViewPending.style.display = 'block';
     adminViewApproved.style.display = 'none';
+    if (adminViewUsers) adminViewUsers.style.display = 'none';
   });
 
   adminTabApproved.addEventListener('click', () => {
     adminTabApproved.classList.add('active');
     adminTabPending.classList.remove('active');
+    if (adminTabUsers) adminTabUsers.classList.remove('active');
     adminViewApproved.style.display = 'block';
     adminViewPending.style.display = 'none';
+    if (adminViewUsers) adminViewUsers.style.display = 'none';
   });
+
+  if (adminTabUsers) {
+    adminTabUsers.addEventListener('click', () => {
+      adminTabUsers.classList.add('active');
+      adminTabPending.classList.remove('active');
+      adminTabApproved.classList.remove('active');
+      if (adminViewUsers) adminViewUsers.style.display = 'block';
+      adminViewPending.style.display = 'none';
+      adminViewApproved.style.display = 'none';
+    });
+  }
 
   function renderAdminPanel() {
     const pendingPoints = window.db.getPendingPoints();
     const allPoints = window.db.getPoints();
+    const allUsers = window.db.getUsers().filter(u => u.role !== 'ADMIN' && u.username.toLowerCase() !== 'admin');
 
     document.getElementById('count-pending').textContent = pendingPoints.length;
     document.getElementById('count-all').textContent = allPoints.length;
+    const countUsersEl = document.getElementById('count-users');
+    if (countUsersEl) countUsersEl.textContent = allUsers.length;
 
     // Render Pendents
     const pendingContainer = document.getElementById('admin-pending-container');
@@ -691,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.innerHTML = `
           <div class="admin-proposal-title">🎄 ${escapeHTML(pt.name)}</div>
           <div class="admin-proposal-meta">
-            📍 <strong>${escapeHTML(pt.municipality)}</strong> | 👤 Per @${escapeHTML(pt.submitted_by)} | 📅 ${new Date(pt.created_at).toLocaleDateString()}
+            👤 Per @${escapeHTML(pt.submitted_by)} | 📅 ${new Date(pt.created_at).toLocaleDateString()}
           </div>
           ${pt.description ? `<p style="font-size:0.85rem; color:#444; margin-bottom:8px;">"${escapeHTML(pt.description)}"</p>` : ''}
           <div style="font-size:0.8rem; color:#666; margin-bottom:8px;">Coordenades: ${pt.latitude}, ${pt.longitude}</div>
@@ -717,13 +803,16 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (pt.status === 'PENDING') statusBadge = `<span style="background:#e5b869; color:#0b251a; padding:2px 8px; border-radius:10px; font-size:0.75rem;">PENDING</span>`;
       else statusBadge = `<span style="background:#a31c1c; color:white; padding:2px 8px; border-radius:10px; font-size:0.75rem;">REJECTED</span>`;
 
+      const rStats = window.db.getPointRatingStats(pt.id);
+      const rBadge = rStats.count > 0 ? ` | 🔴 <strong>${rStats.average}</strong>/5 (${rStats.count})` : '';
+
       card.innerHTML = `
-        <div style="display:flex; justify-space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
           <div class="admin-proposal-title">🎄 ${escapeHTML(pt.name)}</div>
           <div>${statusBadge}</div>
         </div>
         <div class="admin-proposal-meta">
-          📍 <strong>${escapeHTML(pt.municipality)}</strong> | 👤 @${escapeHTML(pt.submitted_by)}
+          👤 @${escapeHTML(pt.submitted_by)}${rBadge}
         </div>
         <div class="admin-actions">
           <button class="btn-edit" onclick="adminOpenEditModal('${pt.id}')">✏️ EDITAR</button>
@@ -732,20 +821,50 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       approvedContainer.appendChild(card);
     });
+
+    // Render Usuaris Registrats
+    const usersContainer = document.getElementById('admin-users-container');
+    if (usersContainer) {
+      usersContainer.innerHTML = '';
+      if (allUsers.length === 0) {
+        usersContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem; padding:12px 0;">Encara no hi ha cap participant registrat.</p>`;
+      } else {
+        allUsers.forEach(u => {
+          const userVisitsCount = window.db.getUserVisits(u.id).length;
+          const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+          const card = document.createElement('div');
+          card.className = 'admin-proposal-card';
+          card.style.display = 'flex';
+          card.style.justifyContent = 'space-between';
+          card.style.alignItems = 'center';
+          card.style.gap = '12px';
+          card.innerHTML = `
+            <div>
+              <div class="admin-proposal-title">🎅 ${escapeHTML(u.username)}</div>
+              <div class="admin-proposal-meta" style="margin-bottom:0;">
+                🎄 <strong>${userVisitsCount}</strong> pessebres visitats | 📅 Registrat: ${dateStr}
+              </div>
+            </div>
+            <button class="btn-reject" onclick="adminDeleteUser('${u.id}', '${escapeHTML(u.username).replace(/'/g, "\\'")}')">🗑️ ESBORRAR</button>
+          `;
+          usersContainer.appendChild(card);
+        });
+      }
+    }
   }
 
   // ACCIONS ADMIN
   window.adminApprovePoint = function(id) {
     window.db.updatePointStatus(id, 'APPROVED');
     showToast('✅ Pessebre acceptat! Ara apareix al mapa públic.');
-    renderApprovedMarkers();
+    renderApprovedMarkers(true);
     renderAdminPanel();
   };
 
   window.adminRejectPoint = function(id) {
     window.db.updatePointStatus(id, 'REJECTED');
     showToast('❌ Pessebre rebutjat.');
-    renderApprovedMarkers();
+    renderApprovedMarkers(true);
     renderAdminPanel();
   };
 
@@ -753,9 +872,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirm('Estàs segur que vols eliminar aquest pessebre?')) {
       window.db.deletePoint(id);
       showToast('🗑️ Pessebre eliminat.');
-      renderApprovedMarkers();
+      renderApprovedMarkers(true);
       renderAdminPanel();
       renderRankingTable();
+    }
+  };
+
+  window.adminDeleteUser = async function(userId, username) {
+    if (confirm(`Estàs segur que vols esborrar l'usuari "${username}" i totes les seves visites i valoracions?`)) {
+      await window.db.deleteUser(userId);
+      showToast(`🗑️ Usuari "${username}" eliminat correctament.`);
+      renderApprovedMarkers(true);
+      renderAdminPanel();
+      renderRankingTable();
+      updateTopStats();
+      renderUserProfile();
     }
   };
 
@@ -820,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sincronització automàtica quan canvia la BD o arriba un canvi des de Supabase Cloud
   window.addEventListener('db:changed', () => {
-    renderApprovedMarkers();
+    renderApprovedMarkers(true);
     updateTopStats();
     renderRankingTable();
     renderUserProfile();

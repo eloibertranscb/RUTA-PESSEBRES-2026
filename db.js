@@ -226,6 +226,33 @@ class PessebresDB {
     window.dispatchEvent(new CustomEvent('db:changed'));
   }
 
+  async deleteUser(userId) {
+    if (!userId || userId === 'usr_admin') return;
+    let users = this.getUsers();
+    users = users.filter(u => u.id !== userId);
+    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+    let visits = this.getVisits();
+    visits = visits.filter(v => v.user_id !== userId);
+    localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(visits));
+
+    if (this.isCloudEnabled && this.supabase) {
+      try {
+        await this.supabase.from('visits').delete().eq('user_id', userId);
+        await this.supabase.from('users').delete().eq('id', userId);
+      } catch (err) {
+        console.warn("Error eliminant usuari de Supabase:", err);
+      }
+    }
+
+    const current = this.getCurrentUser();
+    if (current && current.id === userId) {
+      localStorage.removeItem(DB_KEYS.CURRENT_USER);
+    }
+
+    window.dispatchEvent(new CustomEvent('db:changed'));
+  }
+
   // --- NATIVITY_POINTS ---
   getPoints() {
     return JSON.parse(localStorage.getItem(DB_KEYS.POINTS) || '[]');
@@ -233,32 +260,12 @@ class PessebresDB {
 
   getApprovedPoints() {
     const pts = this.getPoints().filter(p => p.status === 'APPROVED');
-    pts.sort((a, b) => {
+    return pts.sort((a, b) => {
       const numA = parseInt(a.id.replace(/\D/g, ''), 10);
       const numB = parseInt(b.id.replace(/\D/g, ''), 10);
       if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
       return (a.created_at || '').localeCompare(b.created_at || '');
     });
-
-    // MODE PROVA: ?prova=60 afegeix pessebres ficticis NOMÉS en memòria (no es desen enlloc)
-    const prova = parseInt(new URLSearchParams(window.location.search).get('prova'), 10);
-    if (prova > pts.length) {
-      const noms = ['FONT DEL ROURE', 'CAL MASOVER DE LA SERRA ALTA', 'BAUMA GRAN', 'PLA DE LES ERES', 'MOLÍ VELL DEL TORRENT DE LA COMA', 'CAN PUJOL', 'ERMITA DE SANT JOAN', 'BARRACA DE PEDRA SECA DEL CAMÍ RAL'];
-      for (let i = pts.length; i < prova; i++) {
-        pts.push({
-          id: 'prova_' + (i + 1),
-          name: `${noms[i % noms.length]} ${i + 1}`,
-          municipality: 'Sant Feliu Sasserra',
-          latitude: 41.932 + ((i * 37) % 100) / 100 * 0.026,
-          longitude: 2.006 + ((i * 61) % 100) / 100 * 0.028,
-          description: 'Pessebre de prova',
-          submitted_by: 'Prova',
-          status: 'APPROVED',
-          created_at: new Date().toISOString()
-        });
-      }
-    }
-    return pts;
   }
 
   getPendingPoints() {
@@ -274,7 +281,7 @@ class PessebresDB {
     const newPoint = {
       id: 'pt_' + Date.now(),
       name: data.name.trim(),
-      municipality: data.municipality.trim(),
+      municipality: data.municipality ? data.municipality.trim() : 'Sant Feliu Sasserra',
       latitude: parseFloat(data.latitude),
       longitude: parseFloat(data.longitude),
       description: data.description ? data.description.trim() : '',
@@ -317,7 +324,7 @@ class PessebresDB {
       points[index] = {
         ...points[index],
         name: updatedData.name.trim(),
-        municipality: updatedData.municipality.trim(),
+        municipality: updatedData.municipality ? updatedData.municipality.trim() : (points[index].municipality || 'Sant Feliu Sasserra'),
         latitude: parseFloat(updatedData.latitude),
         longitude: parseFloat(updatedData.longitude),
         description: updatedData.description ? updatedData.description.trim() : '',
@@ -359,7 +366,7 @@ class PessebresDB {
     window.dispatchEvent(new CustomEvent('db:changed'));
   }
 
-  // --- VISITS ---
+  // --- VISITS & RATINGS (BOLES DE NADAL) ---
   getVisits() {
     return JSON.parse(localStorage.getItem(DB_KEYS.VISITS) || '[]');
   }
@@ -379,6 +386,75 @@ class PessebresDB {
   hasUserVisited(userId, pointId) {
     if (!userId) return false;
     return this.getVisits().some(v => v.user_id === userId && v.nativity_point_id === pointId);
+  }
+
+  getUserRatingForPoint(userId, pointId) {
+    if (!userId) return 0;
+    const visit = this.getVisits().find(v => v.user_id === userId && v.nativity_point_id === pointId);
+    return visit && visit.rating ? Number(visit.rating) : 0;
+  }
+
+  getPointRatingStats(pointId) {
+    const ratedVisits = this.getVisitsForPoint(pointId).filter(v => v.rating && Number(v.rating) >= 1 && Number(v.rating) <= 5);
+    if (ratedVisits.length === 0) {
+      return { average: 0, count: 0 };
+    }
+    const sum = ratedVisits.reduce((acc, v) => acc + Number(v.rating), 0);
+    return {
+      average: Number((sum / ratedVisits.length).toFixed(1)),
+      count: ratedVisits.length
+    };
+  }
+
+  async ratePoint(userId, pointId, ratingVal) {
+    if (!userId) {
+      throw new Error("Cal que hagis iniciat sessió per valorar un pessebre.");
+    }
+    const r = parseInt(ratingVal, 10);
+    if (isNaN(r) || r < 1 || r > 5) {
+      throw new Error("La valoració ha de ser d'1 a 5 boles de Nadal.");
+    }
+
+    const visits = this.getVisits();
+    const existingIndex = visits.findIndex(v => v.user_id === userId && v.nativity_point_id === pointId);
+
+    if (existingIndex !== -1) {
+      visits[existingIndex].rating = r;
+      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(visits));
+
+      if (this.isCloudEnabled && this.supabase) {
+        try {
+          await this.supabase.from('visits').update({ rating: r }).eq('user_id', userId).eq('nativity_point_id', pointId);
+        } catch (err) {
+          console.warn("Error actualitzant valoració a Supabase:", err);
+        }
+      }
+    } else {
+      const newVisit = {
+        id: 'v_' + Date.now(),
+        user_id: userId,
+        nativity_point_id: pointId,
+        rating: r,
+        created_at: new Date().toISOString()
+      };
+      visits.push(newVisit);
+      localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(visits));
+
+      if (this.isCloudEnabled && this.supabase) {
+        try {
+          const { error } = await this.supabase.from('visits').insert([newVisit]);
+          if (error && error.message && error.message.includes('rating')) {
+            const { rating: _, ...visitNoRating } = newVisit;
+            await this.supabase.from('visits').insert([visitNoRating]);
+          }
+        } catch (err) {
+          console.warn("Error desant visita amb valoració a Supabase:", err);
+        }
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent('db:changed'));
+    return { rating: r, stats: this.getPointRatingStats(pointId) };
   }
 
   async toggleVisit(userId, pointId) {
