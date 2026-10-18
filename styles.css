@@ -327,21 +327,23 @@ body {
   padding: 0;
 }
 
-/* A l'ordinador: les columnes es creen soles segons l'alçada disponible (sense scroll) */
+/* A l'ordinador: com a màxim 2 columnes, sense scroll (la lletra s'ajusta) */
 @media (min-width: 769px) {
   .index-panel-list.is-multicol {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(150px, 230px);
-    column-gap: 18px;
+    grid-template-columns: repeat(2, 200px);
+    column-gap: 16px;
   }
   .floating-index-panel:has(.is-multicol) {
-    max-width: calc(100vw - 260px);
+    max-width: 440px;
   }
   .index-panel-list.is-multicol .index-item {
-    font-size: 0.78rem;
-    padding: 2px 0;
+    font-size: var(--idx-fs, 0.78rem);
+    padding: 1px 0;
+    gap: 5px;
     align-items: flex-start;
+    line-height: 1.15;
   }
 }
 

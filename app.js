@@ -829,12 +829,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ÍNDEX SENSE SCROLL: si no hi cap en alçada, es reparteix en més columnes
+  // ÍNDEX SENSE SCROLL: màxim 2 columnes; si no hi cap, es redueix la lletra
   function layoutIndexColumns() {
     const ul = document.getElementById('index-panel-ul');
     if (!ul) return;
     ul.classList.remove('is-multicol');
     ul.style.gridTemplateRows = '';
+    ul.style.removeProperty('--idx-fs');
     if (window.innerWidth <= 768) return;
 
     const header = document.querySelector('.index-panel-header');
@@ -844,10 +845,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ul.scrollHeight <= avail) return;
 
     ul.classList.add('is-multicol');
-    const items = Array.from(ul.children);
-    const itemH = Math.max(...items.map(li => li.offsetHeight), 1);
-    const rows = Math.max(1, Math.floor(avail / itemH));
-    ul.style.gridTemplateRows = `repeat(${rows}, auto)`;
+    ul.style.gridTemplateRows = `repeat(${Math.ceil(ul.children.length / 2)}, auto)`;
+    for (let fs = 13; fs >= 8; fs -= 0.5) {
+      ul.style.setProperty('--idx-fs', fs + 'px');
+      if (ul.scrollHeight <= avail) break;
+    }
   }
 
   let resizeTimer = null;
