@@ -347,6 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           ${ratingSectionHtml}
           ${actionButtonsHtml}
+          ${currentUser && currentUser.role === 'ADMIN' ? `
+            <div class="pessebre-popup-admin-actions" style="margin-top:10px; padding-top:8px; border-top:1px dashed rgba(122,26,18,0.3); display:flex; gap:6px; justify-content:flex-end;">
+              <button type="button" class="btn-popup-admin-edit" onclick="adminOpenEditModal('${point.id}')" style="background:#fdfbf7; border:1px solid #7a1a12; color:#7a1a12; font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:3px; cursor:pointer;">✏️ EDITAR</button>
+              <button type="button" class="btn-popup-admin-delete" onclick="adminDeletePoint('${point.id}')" style="background:#fee; border:1px solid #c00; color:#c00; font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:3px; cursor:pointer;">🗑️ ELIMINAR</button>
+            </div>
+          ` : ''}
         </div>
       `;
 
@@ -2188,13 +2194,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminPanel();
   };
 
-  window.adminDeletePoint = function(id) {
-    if (confirm('Estàs segur que vols eliminar aquest pessebre?')) {
-      window.db.deletePoint(id);
-      showToast('🗑️ Pessebre eliminat.');
-      renderApprovedMarkers(true);
-      renderAdminPanel();
-      renderRankingTable();
+  window.adminDeletePoint = async function(id) {
+    const pt = window.db.getPointById(id);
+    const name = pt ? pt.name : 'aquest pessebre';
+    if (confirm(`Estàs segur que vols eliminar definitivament el pessebre "${name}"?`)) {
+      try {
+        await window.db.deletePoint(id);
+        showToast('🗑️ Pessebre eliminat definitivament.');
+        if (map) map.closePopup();
+        renderApprovedMarkers(true);
+        renderAdminPanel();
+        renderRankingTable();
+        updateTopStats();
+      } catch (err) {
+        showToast('⚠️ Error eliminant el pessebre: ' + err.message);
+      }
     }
   };
 

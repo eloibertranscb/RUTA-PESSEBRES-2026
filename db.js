@@ -62,19 +62,38 @@ class PessebresDB {
     this.init();
   }
 
+  // --- MAPA DE PUNTS ELIMINATS DEFINITIVAMENT ---
+  getDeletedPointIds() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('pessebres_deleted_point_ids') || '[]'));
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  addDeletedPointId(id) {
+    try {
+      const deleted = this.getDeletedPointIds();
+      deleted.add(id);
+      localStorage.setItem('pessebres_deleted_point_ids', JSON.stringify([...deleted]));
+    } catch (e) {
+      console.warn("Error guardant deleted point id:", e);
+    }
+  }
+
   init() {
-    // 1. Assegurar dades oficials a localStorage (netejat de proves)
+    // 1. Assegurar dades inicials a localStorage si no n'hi ha cap
     const currentPoints = localStorage.getItem(DB_KEYS.POINTS);
-    let pts = currentPoints ? JSON.parse(currentPoints) : [];
+    const deletedIds = this.getDeletedPointIds();
     
-    // Netejar pessebres de prova de l'antiga simulació de 60
-    pts = pts.filter(p => !p.id.startsWith('prova_') && !(parseInt(p.id.replace('pt_', ''), 10) >= 20 && (p.submitted_by === 'Organització' || p.submitted_by === 'Prova')));
-    
-    const existingIds = new Set(pts.map(p => p.id));
-    SEED_POINTS.forEach(sp => {
-      if (!existingIds.has(sp.id)) pts.push(sp);
-    });
-    localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(pts));
+    if (!currentPoints) {
+      const initialPts = SEED_POINTS.filter(sp => !deletedIds.has(sp.id));
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(initialPts));
+    } else {
+      let pts = JSON.parse(currentPoints);
+      pts = pts.filter(p => !deletedIds.has(p.id) && !p.id.startsWith('prova_') && !(parseInt(p.id.replace('pt_', ''), 10) >= 20 && (p.submitted_by === 'Organització' || p.submitted_by === 'Prova')));
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(pts));
+    }
 
     // Inicialitzar usuaris si no n'hi ha cap
     const storedUsers = localStorage.getItem(DB_KEYS.USERS);
@@ -149,12 +168,13 @@ class PessebresDB {
         }));
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(mergedUsers));
       }
-      if (!resPoints.error && resPoints.data && resPoints.data.length > 0) {
-        let cleanCloud = resPoints.data.filter(p => !p.id.startsWith('prova_') && !(parseInt(p.id.replace('pt_', ''), 10) >= 20 && (p.submitted_by === 'Organització' || p.submitted_by === 'Prova')));
-        const existingIds = new Set(cleanCloud.map(p => p.id));
-        SEED_POINTS.forEach(sp => {
-          if (!existingIds.has(sp.id)) cleanCloud.push(sp);
-        });
+      if (!resPoints.error && resPoints.data) {
+        const deletedIds = this.getDeletedPointIds();
+        let cleanCloud = resPoints.data.filter(p => 
+          !deletedIds.has(p.id) &&
+          !p.id.startsWith('prova_') && 
+          !(parseInt(p.id.replace('pt_', ''), 10) >= 20 && (p.submitted_by === 'Organització' || p.submitted_by === 'Prova'))
+        );
         localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(cleanCloud));
       }
       if (!resVisits.error && resVisits.data) {
@@ -349,16 +369,14 @@ class PessebresDB {
 
   // --- NATIVITY_POINTS ---
   getPoints() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.POINTS) || '[]');
+    const deletedIds = this.getDeletedPointIds();
+    const pts = JSON.parse(localStorage.getItem(DB_KEYS.POINTS) || '[]');
+    return pts.filter(p => !deletedIds.has(p.id));
   }
 
   getApprovedPoints() {
-    let pts = this.getPoints().filter(p => p.status === 'APPROVED');
-    // Assegurem que els 19 pessebres oficials hi són presents
-    const existingIds = new Set(pts.map(p => p.id));
-    SEED_POINTS.forEach(sp => {
-      if (!existingIds.has(sp.id)) pts.push(sp);
-    });
+    const deletedIds = this.getDeletedPointIds();
+    let pts = this.getPoints().filter(p => p.status === 'APPROVED' && !deletedIds.has(p.id));
     return pts.sort((a, b) => {
       const numA = parseInt(a.id.replace(/\D/g, ''), 10);
       const numB = parseInt(b.id.replace(/\D/g, ''), 10);
@@ -449,17 +467,21 @@ class PessebresDB {
   }
 
   async deletePoint(id) {
-    let points = this.getPoints();
-    points = points.filter(p => p.id !== id);
+    this.addDeletedPointId(id);
+
+    let points = this.getPoints().filter(p => p.id !== id);
     localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(points));
 
-    let visits = this.getVisits();
-    visits = visits.filter(v => v.nativity_point_id !== id);
+    let visits = this.getVisits().filter(v => v.nativity_point_id !== id);
     localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(visits));
 
     if (this.isCloudEnabled && this.supabase) {
-      await this.supabase.from('nativity_points').delete().eq('id', id);
-      await this.supabase.from('visits').delete().eq('nativity_point_id', id);
+      try {
+        await this.supabase.from('visits').delete().eq('nativity_point_id', id);
+        await this.supabase.from('nativity_points').delete().eq('id', id);
+      } catch (err) {
+        console.warn("Error eliminant pessebre de Supabase:", err);
+      }
     }
 
     window.dispatchEvent(new CustomEvent('db:changed'));
