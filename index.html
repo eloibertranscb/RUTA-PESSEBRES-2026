@@ -351,7 +351,7 @@
           <h2 class="trophy-modal-title">ENHORABONA!</h2>
           <div class="trophy-modal-badge">🏆 HAS COMPLETAT TOTS ELS PESSEBRES 🏆</div>
           <p class="trophy-modal-desc">
-            Has visitat amb èxit tots els <strong id="trophy-total-points">60</strong> pessebres oficials de la Ruta dels Pessebres de Sant Feliu Sasserra!
+            Has visitat amb èxit tots els <strong id="trophy-total-points">19</strong> pessebres oficials de la Ruta dels Pessebres de Sant Feliu Sasserra!
           </p>
         </div>
 
@@ -360,11 +360,13 @@
           <div class="trophy-glow-circle"></div>
           
           <!-- Contenidor interactiu 3D (Three.js OBJLoader) -->
-          <div id="trophy-3d-canvas-container" class="trophy-3d-canvas-container" style="display:none; width:220px; height:280px; margin:0 auto; border-radius:12px; overflow:hidden; position:relative; z-index:2; border:2px solid #e5b869; box-shadow:0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(229,184,105,0.55);"></div>
+          <div id="trophy-3d-canvas-container" class="trophy-3d-canvas-container">
+            <div id="trophy-3d-loading" class="trophy-3d-loading">
+              <div class="trophy-spinner"></div>
+              <span>Carregant escultura 3D...</span>
+            </div>
+          </div>
 
-          <!-- Imatge d'alta resolució oficial -->
-          <img src="trofeu.jpg" alt="Trofeu Pessebres" class="trophy-master-img" id="trophy-master-img">
-          
           <div class="trophy-glint-flare"></div>
           <div class="trophy-sparkle-stars">
             <span class="tss tss-1">✨</span>
@@ -372,8 +374,8 @@
             <span class="tss tss-3">🌟</span>
             <span class="tss tss-4">✨</span>
           </div>
-          <div id="trophy-3d-hint" style="display:none; font-size:0.75rem; color:#ffd700; margin-top:8px; font-weight:700;">
-            🖱️ Pots arrossegar amb el ratolí per girar el trofeu en 3D
+          <div id="trophy-3d-hint" class="trophy-3d-hint">
+            🔄 Girant en 3D continu · Pots arrossegar amb el ratolí o dit per girar-lo
           </div>
         </div>
 
