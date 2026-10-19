@@ -1095,6 +1095,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const avui = new Date();
       const dataText = `${avui.getDate()} ${mesos[avui.getMonth()]} de ${avui.getFullYear()}`;
 
+      // Assegurar que les tipografies de Google Fonts estiguin completament carregades al document
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch (e) {}
+      }
+
       // Funció auxiliar per carregar imatges de forma asíncrona i segura
       function loadImage(src) {
         return new Promise((resolve) => {
@@ -1155,18 +1162,95 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = 1700;
       const ctx = canvas.getContext('2d');
 
-      // A. FONS DE PERGAMÍ NOBLE AMB TEXTURA ARTESANAL DE PAPER
-      const bgGrad = ctx.createRadialGradient(1500, 850, 150, 1200, 850, 1500);
-      bgGrad.addColorStop(0, '#fefbf3');
-      bgGrad.addColorStop(0.35, '#fbf4df');
-      bgGrad.addColorStop(0.75, '#f4e7c7');
-      bgGrad.addColorStop(1, '#e8d4a9');
+      // FUNCIONS AUXILIARS PER AL DISSENY D'ALTA CATEGORIA INSTITUCIONAL
+
+      // A. Filigrana ornamental clàssica renaixentista per a les 4 cantonades
+      function drawRenaissanceCorner(x, y, flipX, flipY) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(flipX, flipY);
+
+        // Voluta exterior principal
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(12, 96);
+        ctx.bezierCurveTo(12, 38, 38, 12, 96, 12);
+        ctx.stroke();
+
+        // Voluta interior fina amb lluentor daurada
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#fae49d';
+        ctx.beginPath();
+        ctx.moveTo(22, 82);
+        ctx.bezierCurveTo(22, 42, 42, 22, 82, 22);
+        ctx.stroke();
+
+        // Espiral barroca amb ombrejat
+        ctx.strokeStyle = '#996f12';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(42, 42, 18, Math.PI * 0.9, Math.PI * 1.85);
+        ctx.stroke();
+
+        // Fulles d'acant i perles daurades als vèrtexs
+        [[28, 28], [62, 16], [16, 62], [54, 38], [38, 54]].forEach(([fx, fy], idx) => {
+          ctx.fillStyle = idx === 0 ? '#b8861b' : '#f5da82';
+          ctx.beginPath();
+          ctx.arc(fx, fy, idx === 0 ? 5.5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#6e4f0c';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // Diamant central de cantonada en vermell granat noble
+        ctx.fillStyle = '#6b110a';
+        ctx.beginPath();
+        ctx.moveTo(18, 10);
+        ctx.lineTo(26, 18);
+        ctx.lineTo(18, 26);
+        ctx.lineTo(10, 18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // B. Filigrana de seguretat estil bitllet de banc / títol nobiliari (Guilloché)
+      function drawGuillocheRosette(cx, cy, R, r, p, steps, strokeStyle) {
+        ctx.save();
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let t = 0; t <= steps; t++) {
+          const theta = (t * Math.PI * 2) / 180;
+          const x = cx + (R - r) * Math.cos(theta) + p * Math.cos(((R - r) * theta) / r);
+          const y = cy + (R - r) * Math.sin(theta) - p * Math.sin(((R - r) * theta) / r);
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // =========================================================================
+      // FONS DE PERGAMÍ NOBLE AMB TEXTURA ARTESANAL I MARQUES DE SEGURETAT
+      // =========================================================================
+      const bgGrad = ctx.createRadialGradient(1450, 850, 100, 1200, 850, 1550);
+      bgGrad.addColorStop(0, '#fffefa');
+      bgGrad.addColorStop(0.35, '#faf3e3');
+      bgGrad.addColorStop(0.75, '#f4e5c3');
+      bgGrad.addColorStop(1, '#e9d3a2');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 2400, 1700);
 
-      // Generació de textura de fibres i gra de paper artesanal perquè no quedi gens "soso"
+      // Microfibres de paper de cotó artesanal
       const prng = (function() {
-        let seed = 1234567;
+        let seed = 9876543;
         return function() {
           seed = (seed * 9301 + 49297) % 233280;
           return seed / 233280;
@@ -1174,142 +1258,183 @@ document.addEventListener('DOMContentLoaded', () => {
       })();
 
       ctx.save();
-      // Pigments microscòpics de textura de cotó
-      for (let i = 0; i < 9500; i++) {
+      // Filigrana de seguretat guilloché molt subtil al fons de la pàgina
+      drawGuillocheRosette(1590, 850, 360, 120, 160, 540, 'rgba(190, 145, 45, 0.038)');
+      drawGuillocheRosette(1590, 850, 240, 80, 110, 360, 'rgba(180, 135, 40, 0.032)');
+
+      // Pigments naturals i fibres de tela
+      for (let i = 0; i < 7500; i++) {
         const px = prng() * 2400;
         const py = prng() * 1700;
-        const r = prng() * 1.5 + 0.5;
-        const alpha = prng() * 0.045 + 0.015;
-        ctx.fillStyle = prng() > 0.5 ? `rgba(130, 90, 35, ${alpha})` : `rgba(255, 255, 255, ${alpha * 1.6})`;
+        const r = prng() * 1.6 + 0.4;
+        const alpha = prng() * 0.035 + 0.01;
+        ctx.fillStyle = prng() > 0.5 ? `rgba(125, 85, 30, ${alpha})` : `rgba(255, 255, 255, ${alpha * 1.8})`;
         ctx.fillRect(px, py, r, r);
       }
-      // Fibres manuals subtils de pergamí
-      for (let i = 0; i < 450; i++) {
+      for (let i = 0; i < 380; i++) {
         const fx = prng() * 2300 + 50;
         const fy = prng() * 1600 + 50;
-        const fl = prng() * 26 + 6;
+        const fl = prng() * 28 + 6;
         const fa = prng() * Math.PI * 2;
-        ctx.strokeStyle = `rgba(140, 95, 35, ${prng() * 0.035 + 0.01})`;
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(135, 90, 30, ${prng() * 0.03 + 0.008})`;
+        ctx.lineWidth = 0.9;
         ctx.beginPath();
         ctx.moveTo(fx, fy);
         ctx.lineTo(fx + Math.cos(fa) * fl, fy + Math.sin(fa) * fl);
         ctx.stroke();
       }
-      // Ombrejat de vinyeta envellida per les vores
+
+      // Ombrejat vinyeta noble per les cantonades
       const edgeVignette = ctx.createRadialGradient(1200, 850, 950, 1200, 850, 1600);
       edgeVignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      edgeVignette.addColorStop(0.7, 'rgba(120, 75, 20, 0.05)');
-      edgeVignette.addColorStop(1, 'rgba(80, 40, 10, 0.22)');
+      edgeVignette.addColorStop(0.7, 'rgba(100, 60, 15, 0.06)');
+      edgeVignette.addColorStop(1, 'rgba(65, 30, 8, 0.24)');
       ctx.fillStyle = edgeVignette;
       ctx.fillRect(0, 0, 2400, 1700);
       ctx.restore();
 
-      // B. MARCS ORNAMENTALS I CANTONADES NOBLES
-      // Marc exterior vermell granat / bordeaux
+      // =========================================================================
+      // MARCS ORNAMENTALS REIALS I FILIGRANES
+      // =========================================================================
+      // 1. Marc exterior vermell carmesí / bordeaux d'honor
       ctx.lineWidth = 26;
-      ctx.strokeStyle = '#5a120c';
+      ctx.strokeStyle = '#4e0e09';
       ctx.strokeRect(34, 34, 2332, 1632);
 
-      // Marc interior daurat or polit
-      ctx.lineWidth = 8;
-      ctx.strokeStyle = '#d4af37';
-      ctx.strokeRect(58, 58, 2284, 1584);
+      // 2. Filets d'or fi que abracen el marc exterior
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#e6be44';
+      ctx.strokeRect(20, 20, 2360, 1660);
+      ctx.strokeRect(48, 48, 2304, 1604);
 
-      // Filigrana fina interior
-      ctx.lineWidth = 2;
+      // 3. Marc intermedi en full d'or polit
+      const frameGoldGrad = ctx.createLinearGradient(0, 0, 2400, 1700);
+      frameGoldGrad.addColorStop(0, '#f9df88');
+      frameGoldGrad.addColorStop(0.3, '#d4af37');
+      frameGoldGrad.addColorStop(0.7, '#a67c1c');
+      frameGoldGrad.addColorStop(1, '#f9df88');
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = frameGoldGrad;
+      ctx.strokeRect(62, 62, 2276, 1576);
+
+      // 4. Filigrana fina interior de seguretat
+      ctx.lineWidth = 1.5;
       ctx.strokeStyle = '#8f670e';
-      ctx.strokeRect(74, 74, 2252, 1552);
+      ctx.strokeRect(76, 76, 2248, 1548);
 
-      // Cantonades ornamentals daurades
-      function drawCornerOrnament(x, y, flipX, flipY) {
+      // 5. Cantonades renaixentistes als quatre vèrtexs
+      drawRenaissanceCorner(84, 84, 1, 1);
+      drawRenaissanceCorner(2316, 84, -1, 1);
+      drawRenaissanceCorner(84, 1616, 1, -1);
+      drawRenaissanceCorner(2316, 1616, -1, -1);
+
+      // Florits daurats als centres cardinals dels marcs
+      function drawCardinalBadge(cx, cy) {
         ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(flipX, flipY);
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 3;
+        ctx.fillStyle = '#6b110a';
         ctx.beginPath();
-        ctx.moveTo(10, 50);
-        ctx.lineTo(10, 10);
-        ctx.lineTo(50, 10);
-        ctx.stroke();
-
-        ctx.fillStyle = '#b38b1b';
-        ctx.beginPath();
-        ctx.arc(20, 20, 6, 0, Math.PI * 2);
+        ctx.moveTo(cx, cy - 8);
+        ctx.lineTo(cx + 8, cy);
+        ctx.lineTo(cx, cy + 8);
+        ctx.lineTo(cx - 8, cy);
+        ctx.closePath();
         ctx.fill();
-
-        ctx.strokeStyle = '#b38b1b';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(35, 35, 12, Math.PI, 1.5 * Math.PI);
+        ctx.strokeStyle = '#e6be44';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.restore();
       }
-      drawCornerOrnament(84, 84, 1, 1);
-      drawCornerOrnament(2316, 84, -1, 1);
-      drawCornerOrnament(84, 1616, 1, -1);
-      drawCornerOrnament(2316, 1616, -1, -1);
+      drawCardinalBadge(1200, 62);
+      drawCardinalBadge(1200, 1638);
+      drawCardinalBadge(62, 850);
+      drawCardinalBadge(2338, 850);
 
-      // C. COLUMNA DIVISÒRIA DAURADA ENTRE LATERAL ESQUERRE I DRET
+      // =========================================================================
+      // COLUMNA DIVISÒRIA DAURADA ENTRE LATERAL ESQUERRE (COPA) I DRET (DIPLOMA)
+      // =========================================================================
       ctx.save();
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#d4af37';
+      ctx.strokeStyle = frameGoldGrad;
       ctx.beginPath();
-      ctx.moveTo(820, 120);
-      ctx.lineTo(820, 1580);
+      ctx.moveTo(820, 110);
+      ctx.lineTo(820, 1590);
       ctx.stroke();
 
       ctx.lineWidth = 1;
       ctx.strokeStyle = '#8f670e';
       ctx.beginPath();
-      ctx.moveTo(828, 140);
-      ctx.lineTo(828, 1560);
+      ctx.moveTo(828, 130);
+      ctx.lineTo(828, 1570);
       ctx.stroke();
 
-      [120, 1580].forEach(y => {
-        ctx.fillStyle = '#7a1a12';
+      // Medallons als extrems i centre de la columna
+      [110, 850, 1590].forEach(y => {
+        ctx.fillStyle = '#6b110a';
         ctx.beginPath();
-        ctx.arc(820, y, 7, 0, Math.PI * 2);
+        ctx.arc(820, y, y === 850 ? 9 : 7, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#d4af37';
+        ctx.strokeStyle = '#e6be44';
         ctx.lineWidth = 2;
         ctx.stroke();
       });
       ctx.restore();
 
       // =========================================================================
-      // D. LATERAL ESQUERRE: LA COPA SEMPRE DE CARA SUPER GROSSA OCUPANT TOT L'ALT
+      // LATERAL ESQUERRE: LA COPA 3D FRONTAL DINS D'UNA FORNÍCULA NOBLE
       // =========================================================================
-      const leftCenterX = 450;
+      const leftCenterX = 440;
 
-      // Aura daurada radiant i celestial de fons
+      // Fornícula arquejada clàssica de fons amb aura radiant
       ctx.save();
-      const aura = ctx.createRadialGradient(leftCenterX, 750, 50, leftCenterX, 750, 420);
-      aura.addColorStop(0, 'rgba(255, 235, 140, 0.65)');
-      aura.addColorStop(0.35, 'rgba(235, 190, 60, 0.35)');
+      const alcoveGrad = ctx.createLinearGradient(leftCenterX, 130, leftCenterX, 1360);
+      alcoveGrad.addColorStop(0, 'rgba(255, 245, 210, 0.45)');
+      alcoveGrad.addColorStop(0.6, 'rgba(240, 215, 140, 0.22)');
+      alcoveGrad.addColorStop(1, 'rgba(212, 175, 55, 0.05)');
+      ctx.fillStyle = alcoveGrad;
+      ctx.beginPath();
+      ctx.arc(leftCenterX, 450, 310, Math.PI, 0); // Arc superior
+      ctx.lineTo(leftCenterX + 310, 1360);
+      ctx.lineTo(leftCenterX - 310, 1360);
+      ctx.closePath();
+      ctx.fill();
+
+      // Arc de filet daurat de la fornícula
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Aura daurada radiant i raigs d'honor de fons
+      const aura = ctx.createRadialGradient(leftCenterX, 750, 40, leftCenterX, 750, 410);
+      aura.addColorStop(0, 'rgba(255, 240, 150, 0.7)');
+      aura.addColorStop(0.35, 'rgba(245, 205, 75, 0.35)');
       aura.addColorStop(0.75, 'rgba(212, 175, 55, 0.12)');
       aura.addColorStop(1, 'rgba(212, 175, 55, 0)');
       ctx.fillStyle = aura;
       ctx.beginPath();
-      ctx.arc(leftCenterX, 750, 420, 0, Math.PI * 2);
+      ctx.arc(leftCenterX, 750, 410, 0, Math.PI * 2);
       ctx.fill();
 
-      // Raigs de llum daurada estil gravat
-      ctx.strokeStyle = 'rgba(255, 225, 100, 0.18)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255, 230, 110, 0.22)';
+      ctx.lineWidth = 1.8;
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 16) {
         ctx.beginPath();
-        ctx.moveTo(leftCenterX + Math.cos(a) * 80, 750 + Math.sin(a) * 80);
-        ctx.lineTo(leftCenterX + Math.cos(a) * 390, 750 + Math.sin(a) * 390);
+        ctx.moveTo(leftCenterX + Math.cos(a) * 90, 750 + Math.sin(a) * 90);
+        ctx.lineTo(leftCenterX + Math.cos(a) * 380, 750 + Math.sin(a) * 380);
         ctx.stroke();
       }
       ctx.restore();
 
-      // Dibuixar la copa 3D frontal super grossa
+      // Dibuixar la copa 3D frontal
       if (trophyImg) {
-        const targetTh = 1150; // Ocupa pràcticament tot l'alt del full
+        const targetTh = 1150;
         const targetTw = Math.round((trophyImg.width / (trophyImg.height || 1)) * targetTh);
+        // Ombra de contacte sota el trofeu
+        ctx.save();
+        ctx.fillStyle = 'rgba(50, 25, 5, 0.25)';
+        ctx.beginPath();
+        ctx.ellipse(leftCenterX, 1335, 180, 24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
         ctx.drawImage(trophyImg, leftCenterX - targetTw / 2, 120, targetTw, targetTh);
       } else {
         ctx.font = '340px sans-serif';
@@ -1317,271 +1442,236 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillText('🏆', leftCenterX, 850);
       }
 
-      // Placa noble daurada sota el trofeu
+      // Placa noble daurada en llautó polit i encunyat sota el trofeu
       ctx.save();
-      const plX = 140;
+      const plX = 130;
       const plY = 1380;
       const plW = 620;
       const plH = 130;
+
+      // Degradat de llautó polit
       const plGrad = ctx.createLinearGradient(plX, plY, plX + plW, plY + plH);
-      plGrad.addColorStop(0, '#7a1a12');
-      plGrad.addColorStop(0.5, '#992218');
-      plGrad.addColorStop(1, '#5a120c');
+      plGrad.addColorStop(0, '#52110a');
+      plGrad.addColorStop(0.5, '#781910');
+      plGrad.addColorStop(1, '#420a05');
       ctx.fillStyle = plGrad;
       ctx.fillRect(plX, plY, plW, plH);
 
+      // Bisell i marc daurat
       ctx.lineWidth = 4;
       ctx.strokeStyle = '#d4af37';
       ctx.strokeRect(plX, plY, plW, plH);
 
       ctx.lineWidth = 1.5;
-      ctx.strokeStyle = '#fff0a0';
+      ctx.strokeStyle = '#fff0a8';
       ctx.strokeRect(plX + 6, plY + 6, plW - 12, plH - 12);
+
+      // Cargols de llautó a les quatre cantonades de la placa
+      [[plX + 16, plY + 16], [plX + plW - 16, plY + 16], [plX + 16, plY + plH - 16], [plX + plW - 16, plY + plH - 16]].forEach(([sx, sy]) => {
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#5a3d07';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx - 3, sy);
+        ctx.lineTo(sx + 3, sy);
+        ctx.stroke();
+      });
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff4c8';
-      ctx.font = '900 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.font = '900 24px "Cinzel", "Montserrat", sans-serif';
       ctx.letterSpacing = '3px';
-      ctx.fillText('★ ESCULTURA OFICIAL 2026 ★', leftCenterX, plY + 45);
+      ctx.fillText('★ ESCULTURA OFICIAL 2026 ★', leftCenterX, plY + 44);
 
-      ctx.font = '800 20px Georgia, serif';
-      ctx.fillStyle = '#d4af37';
-      ctx.fillText('MÀSTER PESSEBRISTA DE SANT FELIU', leftCenterX, plY + 80);
+      ctx.font = '800 20px "Cinzel", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#e6be44';
+      ctx.letterSpacing = '1px';
+      ctx.fillText('MÀSTER PESSEBRISTA DE SANT FELIU', leftCenterX, plY + 79);
 
-      ctx.font = '600 15px -apple-system, sans-serif';
-      ctx.fillStyle = '#e8d4a9';
-      ctx.fillText('TROFEU EN METALL DAURAT 3D', leftCenterX, plY + 107);
+      ctx.font = '600 15px "Montserrat", sans-serif';
+      ctx.fillStyle = '#f0dbc0';
+      ctx.letterSpacing = '2px';
+      ctx.fillText('CREACIÓ EXCLUSIVA · CLUB BANDOLERS', leftCenterX, plY + 107);
       ctx.restore();
 
       // =========================================================================
-      // E. LATERAL DRET: DIPLOMA, TEXTOS INSTITUCIONALS I SEGELL DELS BANDOLERS
+      // LATERAL DRET: DIPLOMA INSTITUCIONAL, TIPOGRAFIA NOBLE I SEGELL DE GALA
       // =========================================================================
       const rightCenterX = 1590;
 
-      // 1. Logotip del Club Excursionista Bandolers a la capçalera
+      // 1. Logotip oficial del Club Excursionista Bandolers a la capçalera
       if (bandolersLogo) {
-        const logoW = 220;
+        const logoW = 210;
         const logoH = Math.round((bandolersLogo.height / (bandolersLogo.width || 1)) * logoW);
-        ctx.drawImage(bandolersLogo, rightCenterX - logoW / 2, 105, logoW, logoH);
+        ctx.save();
+        ctx.shadowColor = 'rgba(60, 30, 10, 0.25)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
+        ctx.drawImage(bandolersLogo, rightCenterX - logoW / 2, 100, logoW, logoH);
+        ctx.restore();
       }
 
-      // 2. Capçalera del Club Excursionista Bandolers
+      // 2. Capçalera institucional de l'entitat
       ctx.textAlign = 'center';
-      ctx.font = '900 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      ctx.fillStyle = '#6b140d';
-      ctx.letterSpacing = '4px';
+      ctx.font = '900 32px "Cinzel", "Montserrat", sans-serif';
+      ctx.fillStyle = '#5c1009';
+      ctx.letterSpacing = '5px';
       ctx.fillText('CLUB EXCURSIONISTA BANDOLERS', rightCenterX, 280);
 
-      ctx.font = '700 21px Georgia, serif';
+      ctx.font = '700 20px "Cinzel", "Montserrat", Georgia, serif';
       ctx.fillStyle = '#8f670e';
       ctx.letterSpacing = '3px';
-      ctx.fillText('SANT FELIU SASSERRA · RUTA DELS PESSEBRES', rightCenterX, 315);
+      ctx.fillText('SANT FELIU SASSERRA · COMARCA DEL LLUÇANÈS', rightCenterX, 316);
 
-      // Divisor daurat sota la capçalera
+      // Divisor ornamental sota la capçalera amb volutes i diamant
+      ctx.save();
       ctx.strokeStyle = '#d4af37';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(1020, 340);
       ctx.lineTo(2160, 340);
       ctx.stroke();
 
-      // Diamant central
-      ctx.fillStyle = '#7a1a12';
+      ctx.fillStyle = '#6b110a';
       ctx.beginPath();
-      ctx.moveTo(rightCenterX, 332);
+      ctx.moveTo(rightCenterX, 331);
       ctx.lineTo(rightCenterX + 10, 340);
-      ctx.lineTo(rightCenterX, 348);
+      ctx.lineTo(rightCenterX, 349);
       ctx.lineTo(rightCenterX - 10, 340);
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = '#ffe58f';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
 
-      // 3. Títol principal del Diploma
-      ctx.font = '900 88px "Bodoni Moda", "Playfair Display", Georgia, serif';
-      ctx.fillStyle = '#7a1a12';
-      ctx.shadowColor = 'rgba(212, 175, 55, 0.45)';
-      ctx.shadowBlur = 12;
-      ctx.fillText('DIPLOMA D\'HONOR', rightCenterX, 450);
+      // 3. Títol principal del Diploma (Tipografia gravada de màxima categoria)
+      ctx.save();
+      ctx.font = '900 86px "Cinzel", "Playfair Display", Georgia, serif';
+      ctx.letterSpacing = '5px';
+      ctx.fillStyle = '#6e130c';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.4)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 3;
+      ctx.fillText('DIPLOMA D\'HONOR', rightCenterX, 448);
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
 
-      ctx.font = '800 38px "Bodoni Moda", "Playfair Display", Georgia, serif';
-      ctx.fillStyle = '#b38b1b';
-      ctx.fillText('MÀSTER PESSEBRISTA · EDICIÓ OFICIAL 2026', rightCenterX, 515);
+      // Subtítol oficial de la distinció
+      ctx.font = '800 33px "Cinzel", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#b3881b';
+      ctx.letterSpacing = '3px';
+      ctx.fillText('DISTINCIÓ DE MÀSTER PESSEBRISTA · 2026', rightCenterX, 510);
 
-      // Estrelles daurades
-      ctx.font = '32px sans-serif';
+      // Estrelles daurades de reconeixement
+      ctx.font = '28px sans-serif';
       ctx.fillStyle = '#d4af37';
-      ctx.fillText('★   ★   ★   ★   ★', rightCenterX, 565);
-
-      // 4. Presentació
-      ctx.font = 'italic 30px Georgia, serif';
-      ctx.fillStyle = '#5c3f0c';
-      ctx.fillText('Per la present es certifica oficialment amb el màxim mèrit i reconeixement a:', rightCenterX, 635);
-
-      // 5. Nom del participant destacat
-      ctx.font = '900 88px "Bodoni Moda", "Playfair Display", Georgia, serif';
-      ctx.fillStyle = '#221105';
-      ctx.fillText(cleanName, rightCenterX, 740);
-
-      // Subratllat d'honor
-      const nameWidth = Math.min(ctx.measureText(cleanName).width + 80, 1100);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#d4af37';
-      ctx.beginPath();
-      ctx.moveTo(rightCenterX - nameWidth / 2, 765);
-      ctx.lineTo(rightCenterX + nameWidth / 2, 765);
-      ctx.stroke();
-
-      ctx.fillStyle = '#7a1a12';
-      ctx.beginPath();
-      ctx.arc(rightCenterX, 765, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 6. Text oficial d'assoliment amb data d'avui i nombre de pessebres
-      ctx.font = '400 28px Georgia, serif';
-      ctx.fillStyle = '#3a2610';
-      ctx.fillText(`Per haver completat amb èxit i constància a data de ${dataText}`, rightCenterX, 840);
-      ctx.fillText(`la totalitat dels ${approvedCount} pessebres que configuren la Ruta dels Pessebres de Sant Feliu Sasserra,`, rightCenterX, 888);
-      ctx.fillText(`demostrant una exemplar passió per la muntanya, compromís amb la nostra terra`, rightCenterX, 936);
-      ctx.fillText(`i la preservació de la tradició viva pessebrista del Club Excursionista Bandolers.`, rightCenterX, 984);
-
-      // 7. Data d'expedició i codi de verificació (a la part inferior esquerra del bloc dret)
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#4a3215';
-      ctx.font = '700 24px Georgia, serif';
-      ctx.fillText(`Data d'expedició: ${dataText}`, 920, 1140);
-
-      ctx.font = '400 20px monospace';
-      ctx.fillStyle = '#7a5a30';
-      const hash = Math.abs(cleanName.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)).toString(16).toUpperCase().padStart(8, '0');
-      ctx.fillText(`Codi oficial de registre: SFS-BANDOLERS-2026-${hash}`, 920, 1180);
-
-      // Signatura oficial
-      ctx.textAlign = 'center';
-      ctx.font = 'italic 34px "Brush Script MT", "Playfair Display", cursive, serif';
-      ctx.fillStyle = '#301807';
-      ctx.fillText('Club Excursionista Bandolers', 1230, 1330);
-      ctx.strokeStyle = '#8f670e';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(1010, 1345);
-      ctx.lineTo(1450, 1345);
-      ctx.stroke();
-      ctx.font = '700 18px -apple-system, sans-serif';
-      ctx.fillStyle = '#6b4923';
-      ctx.fillText('COMISSIÓ ORGANITZADORA DE LA RUTA', 1230, 1375);
-      ctx.font = '600 15px -apple-system, sans-serif';
-      ctx.fillStyle = '#8f670e';
-      ctx.fillText('SANT FELIU SASSERRA', 1230, 1400);
-
-      // =========================================================================
-      // F. EL NOU SEGELL OFICIAL DAURAT I EMBLEMA DELS BANDOLERS (MOLT MÉS MACO)
-      // =========================================================================
-      const sealX = 1980;
-      const sealY = 1300;
-      const sealR = 145;
-
-      // 1. Cintes de seda vermella que pengen sota el segell
-      ctx.save();
-      ctx.fillStyle = '#7a1a12';
-      // Cinta esquerra
-      ctx.beginPath();
-      ctx.moveTo(sealX - 55, sealY + 80);
-      ctx.lineTo(sealX - 85, sealY + 230);
-      ctx.lineTo(sealX - 45, sealY + 205);
-      ctx.lineTo(sealX - 10, sealY + 230);
-      ctx.lineTo(sealX - 20, sealY + 95);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#d4af37';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Cinta dreta
-      ctx.beginPath();
-      ctx.moveTo(sealX + 20, sealY + 95);
-      ctx.lineTo(sealX + 10, sealY + 230);
-      ctx.lineTo(sealX + 45, sealY + 205);
-      ctx.lineTo(sealX + 85, sealY + 230);
-      ctx.lineTo(sealX + 55, sealY + 80);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fillText('★   ★   ★   ★   ★', rightCenterX, 558);
       ctx.restore();
 
-      // 2. Medalló exterior daurat amb 36 puntes festonades
+      // 4. Preàmbul oficial
+      ctx.font = 'italic 27px "Cormorant Garamond", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#5c3e10';
+      ctx.fillText('Per la present, el Club Excursionista Bandolers certifica que:', rightCenterX, 630);
+
+      // 5. Nom del participant guardonat (Gran protagonista del document)
       ctx.save();
-      ctx.beginPath();
-      const points = 36;
-      for (let i = 0; i < points * 2; i++) {
-        const angle = (i * Math.PI) / points;
-        const r = i % 2 === 0 ? sealR + 10 : sealR;
-        const px = sealX + Math.cos(angle) * r;
-        const py = sealY + Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      const outerSealGrad = ctx.createRadialGradient(sealX - 30, sealY - 30, 20, sealX, sealY, sealR + 10);
-      outerSealGrad.addColorStop(0, '#fff6c8');
-      outerSealGrad.addColorStop(0.4, '#e6be44');
-      outerSealGrad.addColorStop(0.8, '#b88618');
-      outerSealGrad.addColorStop(1, '#664c13');
-      ctx.fillStyle = outerSealGrad;
-      ctx.shadowColor = 'rgba(60, 30, 10, 0.4)';
-      ctx.shadowBlur = 16;
-      ctx.fill();
+      ctx.font = '900 86px "Playfair Display", "Cinzel", Georgia, serif';
+      ctx.fillStyle = '#1c0e04';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.25)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(cleanName, rightCenterX, 735);
       ctx.shadowBlur = 0;
 
-      // 3. Disc interior daurat
-      const innerSealGrad = ctx.createRadialGradient(sealX - 25, sealY - 25, 10, sealX, sealY, sealR - 15);
-      innerSealGrad.addColorStop(0, '#fffde6');
-      innerSealGrad.addColorStop(0.5, '#e4ba39');
-      innerSealGrad.addColorStop(0.85, '#a67c1e');
-      innerSealGrad.addColorStop(1, '#5a400e');
-      ctx.fillStyle = innerSealGrad;
+      // Bigoti cal·ligràfic d'honor i or sota el nom
+      const nameWidth = Math.min(ctx.measureText(cleanName).width + 90, 1100);
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = '#d4af37';
       ctx.beginPath();
-      ctx.arc(sealX, sealY, sealR - 15, 0, Math.PI * 2);
+      ctx.moveTo(rightCenterX - nameWidth / 2, 762);
+      ctx.lineTo(rightCenterX + nameWidth / 2, 762);
+      ctx.stroke();
+
+      // Voluta central amb gemma carmesí
+      ctx.fillStyle = '#6b110a';
+      ctx.beginPath();
+      ctx.arc(rightCenterX, 762, 6.5, 0, Math.PI * 2);
       ctx.fill();
-
-      // Anells concèntrics decoratius
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#fff8b0';
+      ctx.strokeStyle = '#ffe58f';
+      ctx.lineWidth = 1.5;
       ctx.stroke();
-
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#4a360c';
-      ctx.beginPath();
-      ctx.arc(sealX, sealY, sealR - 32, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // 4. Emblema del Club Bandolers al cor del segell
-      if (bandolersLogo) {
-        const logoW = 145;
-        const logoH = Math.round((bandolersLogo.height / (bandolersLogo.width || 1)) * logoW);
-        ctx.drawImage(bandolersLogo, sealX - logoW / 2, sealY - 60, logoW, logoH);
-      }
-
-      // 5. Gravat del segell
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#3a2807';
-      ctx.font = '900 13px -apple-system, sans-serif';
-      ctx.letterSpacing = '1px';
-      ctx.fillText('★ CLUB EXCURSIONISTA ★', sealX, sealY - 95);
-      ctx.font = '900 14px -apple-system, sans-serif';
-      ctx.fillText('BANDOLERS', sealX, sealY - 79);
-
-      ctx.font = '900 30px "Bodoni Moda", serif';
-      ctx.fillStyle = '#2d1c03';
-      ctx.fillText('2026', sealX, sealY + 54);
-
-      ctx.font = '800 13px -apple-system, sans-serif';
-      ctx.fillStyle = '#4a360c';
-      ctx.fillText('MÀSTER PESSEBRISTA', sealX, sealY + 76);
-
-      ctx.font = '700 11px -apple-system, sans-serif';
-      ctx.fillStyle = '#6b4923';
-      ctx.fillText('SEGELL D\'HONOR OFICIAL', sealX, sealY + 94);
       ctx.restore();
+
+      // 6. Text oficial d'assoliment (Prosa curosa i poètica de tradició i muntanya)
+      ctx.font = '400 27px "Cormorant Garamond", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#301e09';
+      ctx.fillText(`Per haver coronat amb exemplar constància, esforç i passió per la muntanya a data de ${dataText},`, rightCenterX, 836);
+      ctx.fillText(`la totalitat dels ${approvedCount} pessebres que conformen la tradicional Ruta dels Pessebres de Sant Feliu Sasserra,`, rightCenterX, 882);
+      ctx.fillText(`recorrent els cims, senderes i indrets més singulars del nostre terme municipal,`, rightCenterX, 928);
+      ctx.fillText(`preservant viva la tradició pessebrista i assolint el màxim reconeixement d'honor del CE Bandolers.`, rightCenterX, 974);
+
+      // =========================================================================
+      // PART INFERIOR: METADADES OFICIALS I SIGNATURA CE BANDOLERS (NET I EQUILIBRAT)
+      // =========================================================================
+
+      // A. Metadades d'expedició i registre (Zona esquerra)
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#452e12';
+      ctx.font = '700 24px "Cinzel", "Montserrat", Georgia, serif';
+      ctx.letterSpacing = '1px';
+      ctx.fillText(`Data d'expedició:`, 940, 1240);
+
+      ctx.font = '600 24px "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#63441d';
+      ctx.letterSpacing = '0px';
+      ctx.fillText(`${dataText}`, 940, 1278);
+
+      const hash = Math.abs(cleanName.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)).toString(16).toUpperCase().padStart(8, '0');
+      ctx.font = '700 18px "Montserrat", sans-serif';
+      ctx.fillStyle = '#855f28';
+      ctx.letterSpacing = '1px';
+      ctx.fillText(`Registre Oficial: SFS-BANDOLERS-2026-${hash}`, 940, 1335);
+      ctx.fillText(`Pessebres Verificats: ${approvedCount} de ${approvedCount} (100% Assolit)`, 940, 1368);
+
+      // B. Signatura oficial CE Bandolers (Zona dreta)
+      const sigCenterX = 1880;
+      ctx.textAlign = 'center';
+
+      // Firma cal·ligràfica elegant de CE Bandolers
+      ctx.font = 'italic 62px "Alex Brush", "Playfair Display", cursive, serif';
+      ctx.fillStyle = '#220e03';
+      ctx.fillText('CE Bandolers', sigCenterX, 1260);
+
+      // Línia noble daurada amb floritura
+      ctx.strokeStyle = '#cba02c';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(sigCenterX - 200, 1290);
+      ctx.lineTo(sigCenterX + 200, 1290);
+      ctx.stroke();
+
+      // Gemma rubí central
+      ctx.fillStyle = '#6b110a';
+      ctx.beginPath();
+      ctx.arc(sigCenterX, 1290, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffe58f';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Text institucional
+      ctx.font = '900 22px "Cinzel", "Montserrat", sans-serif';
+      ctx.fillStyle = '#5c1009';
+      ctx.letterSpacing = '3px';
+      ctx.fillText('CLUB EXCURSIONISTA BANDOLERS', sigCenterX, 1335);
+
+      ctx.font = '700 17px "Montserrat", sans-serif';
+      ctx.fillStyle = '#8a620d';
+      ctx.letterSpacing = '2px';
+      ctx.fillText('SANT FELIU SASSERRA · 2026', sigCenterX, 1365);
 
       // 8. DESCARREGA DEL FITXER PDF EN ALTA QUALITAT
       const safeFilename = `Diploma_Master_Pessebrista_Bandolers_${cleanName.replace(/[^a-zA-Z0-9_-]/g, '_')}_2026`;
@@ -1797,6 +1887,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = '';
 
+    const approvedPoints = window.db.getApprovedPoints();
+    const approvedIds = new Set(approvedPoints.map(p => p.id));
+    const approvedCount = approvedPoints.length;
+
     leaderboard.forEach(item => {
       const tr = document.createElement('tr');
       if (currentUser && item.id === currentUser.id) {
@@ -1810,9 +1904,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const score = currentRankingType === 'visited' ? item.visitsCount : item.createdCount;
 
+      // Comprovar si aquest participant ha visitat i completat tots els pessebres de la ruta
+      const userVisits = window.db.getUserVisits(item.id);
+      const approvedVisitsCount = userVisits.filter(v => approvedIds.has(v.nativity_point_id)).length;
+      const hasCompletedAll = approvedCount > 0 && (approvedVisitsCount >= approvedCount || (item.visitsCount !== undefined && item.visitsCount >= approvedCount));
+      const trophyBadge = hasCompletedAll
+        ? `<span class="ranking-completed-badge" title="🏆 Màster Pessebrista: Ha completat tots els ${approvedCount} pessebres!">🏆</span>`
+        : '';
+
       tr.innerHTML = `
         <td style="width: 70px;">${rankDisplay}</td>
-        <td><strong>${escapeHTML(item.username)}</strong> ${currentUser && item.id === currentUser.id ? '(Tu)' : ''}</td>
+        <td>
+          <span style="display:inline-flex; align-items:center; gap:4px;">
+            <strong>${escapeHTML(item.username)}</strong>
+            ${trophyBadge}
+            ${currentUser && item.id === currentUser.id ? '<span style="font-size:0.8rem; color:var(--text-muted); font-weight:700; margin-left:3px;">(Tu)</span>' : ''}
+          </span>
+        </td>
         <td style="font-weight: 800; color: var(--accent-red);">${score}</td>
       `;
       tbody.appendChild(tr);

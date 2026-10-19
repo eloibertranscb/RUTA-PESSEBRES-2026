@@ -836,6 +836,29 @@ body {
 .rank-2 { background: #e0e0e0; color: #424242; }
 .rank-3 { background: #f4a261; color: #5c2c00; }
 
+.ranking-completed-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  margin-left: 5px;
+  vertical-align: middle;
+  filter: drop-shadow(0 2px 5px rgba(212, 175, 55, 0.7));
+  cursor: help;
+  animation: rankingTrophyPulse 3s infinite ease-in-out;
+}
+
+@keyframes rankingTrophyPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(212, 175, 55, 0.7));
+  }
+  50% {
+    transform: scale(1.22) rotate(4deg);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.95));
+  }
+}
+
 /* --------------------------------------------------------------------------
    PANEL D'ADMINISTRACIÓ
    -------------------------------------------------------------------------- */
@@ -2412,44 +2435,50 @@ body {
 
 /* Placa d'honor daurada estil llautó noble */
 .trophy-pedestal-plaque {
-  background: linear-gradient(135deg, #d4af37 0%, #fff0a0 35%, #b38b1b 70%, #f3db78 100%);
-  border: 2px solid #805c0d;
+  background: linear-gradient(135deg, #781910 0%, #52110a 50%, #380804 100%);
+  border: 2px solid #d4af37;
   border-radius: 8px;
-  padding: 10px 18px;
+  padding: 12px 18px;
   margin: 12px auto 18px auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7);
-  max-width: 360px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 0 0 1px #fff0a8, 0 0 15px rgba(212, 175, 55, 0.25);
+  max-width: 380px;
+  position: relative;
 }
 
 .plaque-title {
-  font-size: 0.68rem;
+  font-family: 'Cinzel', 'Montserrat', sans-serif;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 1.5px;
-  color: #523507;
+  letter-spacing: 2.5px;
+  color: #ffd966;
   text-transform: uppercase;
 }
 
 .plaque-name {
-  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
-  font-size: 1.35rem;
+  font-family: 'Playfair Display', 'Cinzel', Georgia, serif;
+  font-size: 1.45rem;
   font-weight: 900;
-  color: #2e1c03;
-  margin: 2px 0;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+  margin: 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7), 0 0 10px rgba(255, 217, 102, 0.4);
 }
 
 .plaque-sub {
-  font-size: 0.75rem;
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #5c3f0c;
+  color: #e6be44;
+  letter-spacing: 1px;
 }
 
 .plaque-footer {
-  font-size: 0.64rem;
-  font-weight: 900;
-  color: #7a5210;
-  letter-spacing: 1px;
-  margin-top: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #fce494;
+  letter-spacing: 1.5px;
+  margin-top: 6px;
+  opacity: 0.9;
 }
 
 .trophy-modal-actions {
