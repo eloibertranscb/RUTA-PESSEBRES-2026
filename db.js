@@ -305,12 +305,24 @@ class PessebresDB {
         if (!existingIds.has(sp.id)) pts.push(sp);
       });
     }
-    return pts.sort((a, b) => {
+    pts.sort((a, b) => {
       const numA = parseInt(a.id.replace(/\D/g, ''), 10);
       const numB = parseInt(b.id.replace(/\D/g, ''), 10);
       if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
       return (a.created_at || '').localeCompare(b.created_at || '');
     });
+
+    // MODE PROVA RÀPIDA (Pestanya de prova amb 3 pessebres per provar el trofeu a l'instant)
+    const urlParams = new URLSearchParams(window.location.search);
+    const provaParam = parseInt(urlParams.get('prova') || urlParams.get('test'), 10);
+    if (!isNaN(provaParam) && provaParam > 0 && provaParam < pts.length) {
+      return pts.slice(0, provaParam);
+    }
+    if (window.location.pathname.toLowerCase().endsWith('prova.html')) {
+      return pts.slice(0, 3);
+    }
+
+    return pts;
   }
 
   getPendingPoints() {

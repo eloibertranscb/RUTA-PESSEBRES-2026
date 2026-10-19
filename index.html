@@ -75,6 +75,10 @@
           <span>🏆</span> RÀNQUING
         </button>
 
+        <a href="prova.html" target="_blank" class="btn-header btn-test-tab-pill" id="btn-open-test-tab" title="Obre una nova pestanya de prova amb només 3 pessebres per provar el trofeu ràpidament" style="text-decoration:none; background:#fff7ed; border-color:#f97316; color:#c2410c;">
+          <span>⚡</span> PROVA (3)
+        </a>
+
         <button class="btn-header btn-admin-pill" id="btn-open-admin" style="display: none;">
           <span>⚙️</span> Admin <span id="admin-pending-badge" style="display:none; background:#7a1a12; color:white; padding:1px 6px; border-radius:10px; font-size:0.75rem; margin-left:4px; font-weight:800;">0</span>
         </button>
@@ -358,13 +362,22 @@
         <div class="trophy-display-wrapper">
           <div class="trophy-light-rays"></div>
           <div class="trophy-glow-circle"></div>
-          <img src="trofeu.jpg" alt="Trofeu Pessebres" class="trophy-master-img">
+          
+          <!-- Contenidor interactiu 3D (Three.js OBJLoader) -->
+          <div id="trophy-3d-canvas-container" class="trophy-3d-canvas-container" style="display:none; width:220px; height:280px; margin:0 auto; border-radius:12px; overflow:hidden; position:relative; z-index:2; border:2px solid #e5b869; box-shadow:0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(229,184,105,0.55);"></div>
+
+          <!-- Imatge d'alta resolució oficial -->
+          <img src="trofeu.jpg" alt="Trofeu Pessebres" class="trophy-master-img" id="trophy-master-img">
+          
           <div class="trophy-glint-flare"></div>
           <div class="trophy-sparkle-stars">
             <span class="tss tss-1">✨</span>
             <span class="tss tss-2">⭐</span>
             <span class="tss tss-3">🌟</span>
             <span class="tss tss-4">✨</span>
+          </div>
+          <div id="trophy-3d-hint" style="display:none; font-size:0.75rem; color:#ffd700; margin-top:8px; font-weight:700;">
+            🖱️ Pots arrossegar amb el ratolí per girar el trofeu en 3D
           </div>
         </div>
 
@@ -397,6 +410,12 @@
 
   <!-- Supabase Client JS (v2) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Three.js + Loaders per a suport 3D OBJ del Trofeu -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <!-- Configuració i Base de Dades -->
   <script src="config.js"></script>

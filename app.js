@@ -528,11 +528,126 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           triggerVictoryConfetti();
           showModal('modal-trophy');
+          initTrophy3D();
           showToast(`🏆 ENHORABONA @${currentUser.username}! HAS GUANYAT EL TROFEU DELS PESSEBRES 2026!`);
         }, 500);
       }
     } else {
       trophyBadge.style.display = 'none';
+    }
+  }
+
+  // 3D VIEWER PER AL TROFEU OFICIAL (Three.js OBJLoader)
+  let trophy3DInitialized = false;
+  let trophy3DScene, trophy3DCamera, trophy3DRenderer, trophy3DControls, trophy3DModel;
+
+  function initTrophy3D() {
+    if (trophy3DInitialized) return;
+    const container = document.getElementById('trophy-3d-canvas-container');
+    const masterImg = document.getElementById('trophy-master-img');
+    const hintEl = document.getElementById('trophy-3d-hint');
+    if (!container || !window.THREE || !window.THREE.OBJLoader) return;
+
+    try {
+      const width = 220;
+      const height = 280;
+
+      trophy3DScene = new THREE.Scene();
+      trophy3DCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      trophy3DCamera.position.set(0, 0, 3.2);
+
+      trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      trophy3DRenderer.setSize(width, height);
+      trophy3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      if (THREE.sRGBEncoding) trophy3DRenderer.outputEncoding = THREE.sRGBEncoding;
+      container.innerHTML = '';
+      container.appendChild(trophy3DRenderer.domElement);
+
+      if (window.THREE.OrbitControls) {
+        trophy3DControls = new THREE.OrbitControls(trophy3DCamera, trophy3DRenderer.domElement);
+        trophy3DControls.enableDamping = true;
+        trophy3DControls.dampingFactor = 0.05;
+        trophy3DControls.enableZoom = false;
+        trophy3DControls.autoRotate = true;
+        trophy3DControls.autoRotateSpeed = 2.5;
+      }
+
+      // Il·luminació celestial i reflexos daurats
+      const ambientLight = new THREE.AmbientLight(0xfff4e0, 1.2);
+      trophy3DScene.add(ambientLight);
+
+      const mainLight = new THREE.DirectionalLight(0xffeedd, 1.8);
+      mainLight.position.set(2, 4, 3);
+      trophy3DScene.add(mainLight);
+
+      const rimLight = new THREE.DirectionalLight(0xd4af37, 1.5);
+      rimLight.position.set(-2, -2, -2);
+      trophy3DScene.add(rimLight);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (trophy3DControls) {
+          trophy3DControls.update();
+        } else if (trophy3DModel) {
+          trophy3DModel.rotation.y += 0.015;
+        }
+        trophy3DRenderer.render(trophy3DScene, trophy3DCamera);
+      }
+      animate();
+
+      // Carregar textura i model OBJ
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(
+        'trofeu_model/trofeu.png',
+        (tex) => {
+          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+          const material = new THREE.MeshStandardMaterial({
+            map: tex,
+            metalness: 0.85,
+            roughness: 0.25
+          });
+
+          const objLoader = new THREE.OBJLoader();
+          objLoader.load(
+            'trofeu_model/trofeu.obj',
+            (obj) => {
+              obj.traverse((child) => {
+                if (child.isMesh) {
+                  child.material = material;
+                }
+              });
+
+              // Centrar i escalar el model
+              const box = new THREE.Box3().setFromObject(obj);
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z);
+              const scale = 1.9 / maxDim;
+              obj.scale.set(scale, scale, scale);
+              obj.position.sub(center.multiplyScalar(scale));
+
+              trophy3DModel = obj;
+              trophy3DScene.add(obj);
+
+              // Mostrar el model 3D interactiu
+              container.style.display = 'block';
+              if (masterImg) masterImg.style.display = 'none';
+              if (hintEl) hintEl.style.display = 'block';
+              trophy3DInitialized = true;
+            },
+            undefined,
+            (err) => {
+              console.warn("No s'ha pogut carregar l'OBJ directament (es manté la imatge oficial d'alta definició):", err);
+            }
+          );
+        },
+        undefined,
+        (err) => {
+          console.warn("No s'ha pogut carregar la textura del trofeu 3D (es manté la imatge oficial):", err);
+        }
+      );
+    } catch (e) {
+      console.warn("Error inicialitzant visor 3D Three.js:", e);
     }
   }
 
@@ -549,6 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (userNameEl) userNameEl.textContent = currentUser ? `@${currentUser.username}` : 'Pessebrista';
       triggerVictoryConfetti();
       showModal('modal-trophy');
+      initTrophy3D();
     });
   }
 
