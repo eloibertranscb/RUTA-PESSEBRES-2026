@@ -1554,9 +1554,29 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 6px;
     width: 100%;
     margin-bottom: 2px;
+  }
+
+  .floating-title-overlay .trophy-title-badge {
+    margin-top: 6px;
+    padding: 6px 8px;
+    width: auto;
+  }
+
+  .floating-title-overlay .trophy-header-3d-container {
+    width: 90px;
+    height: 105px;
+  }
+
+  .floating-title-overlay .trophy-badge-info .tb-tag {
+    font-size: 0.65rem;
+  }
+
+  .floating-title-overlay .trophy-badge-info .tb-name {
+    font-size: 0.58rem;
   }
 
   .floating-title-overlay .title-line-1,
@@ -2042,28 +2062,39 @@ body {
    TROFEU OFICIAL RUTA DELS PESSEBRES (100% COMPLETAT)
    ========================================================================== */
 
-/* 1. Insígnia flotant sota el títol de PESSEBRES */
+/* Canvas d'efectes continus (Neu i Confeti tot el rato per al guanyador) */
+#victory-effects-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 998;
+}
+
+/* 1. Escultura 3D permanent sota el títol de PESSEBRES */
 .trophy-title-badge {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-top: 10px;
-  background: linear-gradient(135deg, rgba(255, 252, 242, 0.96) 0%, rgba(254, 243, 199, 0.94) 100%);
+  gap: 6px;
+  margin-top: 14px;
+  background: radial-gradient(circle at 50% 30%, rgba(35, 20, 10, 0.94) 0%, rgba(14, 8, 4, 0.96) 100%);
   border: 2px solid #d4af37;
-  border-radius: 40px;
-  padding: 6px 16px 6px 8px;
-  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.4), 0 0 25px rgba(255, 215, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 18px;
+  padding: 8px 10px 8px 10px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65), 0 0 30px rgba(212, 175, 55, 0.4);
   pointer-events: auto;
   cursor: pointer;
   position: relative;
-  transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.22s ease;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
   user-select: none;
   animation: trophyBadgeEntrance 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .trophy-title-badge:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 26px rgba(212, 175, 55, 0.65), 0 0 35px rgba(255, 215, 0, 0.45);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 45px rgba(255, 215, 0, 0.6);
 }
 
 @keyframes trophyBadgeEntrance {
@@ -2074,9 +2105,9 @@ body {
 /* Aura lluminosa daurada que batega al voltant del trofeu */
 .trophy-badge-glow {
   position: absolute;
-  inset: -4px;
-  border-radius: 44px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.45) 0%, rgba(212, 175, 55, 0) 70%);
+  inset: -6px;
+  border-radius: 24px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(212, 175, 55, 0) 70%);
   pointer-events: none;
   z-index: 0;
   animation: trophyGlowPulse 2.8s ease-in-out infinite alternate;
@@ -2087,90 +2118,67 @@ body {
   100% { opacity: 0.85; transform: scale(1.04); }
 }
 
-.trophy-badge-thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+/* Contenidor de l'escultura 3D sota el títol */
+.trophy-header-3d-container {
+  width: 140px;
+  height: 165px;
   position: relative;
+  border-radius: 12px;
   overflow: hidden;
-  border: 2px solid #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.7), inset 0 0 6px rgba(255, 255, 255, 0.8);
-  flex-shrink: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.12) 0%, transparent 75%);
   z-index: 1;
 }
 
-.trophy-badge-icon {
-  width: 100%;
-  height: 100%;
+.trophy-header-3d-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  outline: none;
+}
+
+.trophy-header-3d-loading {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  background: radial-gradient(circle at 40% 35%, #fff3b0 0%, #d4af37 60%, #855b0a 100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-  user-select: none;
+  background: rgba(14, 8, 4, 0.8);
+  z-index: 2;
+  transition: opacity 0.3s ease;
 }
 
-/* Reflex de llum (shimmer) que recorre la copeta periòdicament */
-.trophy-badge-shimmer {
-  position: absolute;
-  top: -50%;
-  left: -120%;
-  width: 60%;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
-  transform: rotate(30deg);
-  animation: trophyShimmerPass 3.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes trophyShimmerPass {
-  0%, 70% { left: -120%; }
-  100% { left: 160%; }
-}
-
-.trophy-badge-sparkles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.tb-sparkle {
-  position: absolute;
-  font-size: 11px;
-  animation: tbSparkleFloat 2s ease-in-out infinite alternate;
-}
-
-.tbs-1 { top: -2px; right: -2px; animation-delay: 0.2s; }
-.tbs-2 { bottom: -2px; left: -2px; animation-delay: 0.9s; }
-
-@keyframes tbSparkleFloat {
-  0% { transform: scale(0.7) rotate(0deg); opacity: 0.4; }
-  100% { transform: scale(1.25) rotate(25deg); opacity: 1; }
+.trophy-header-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .trophy-badge-info {
-  text-align: left;
+  text-align: center;
   z-index: 1;
+  padding: 0 4px;
 }
 
 .trophy-badge-info .tb-tag {
   display: block;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 900;
-  color: #7a1a12;
+  color: #ffd700;
   letter-spacing: 0.8px;
   line-height: 1.1;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
 .trophy-badge-info .tb-name {
   display: block;
   font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 700;
-  color: #9c6818;
+  color: #f3ece5;
   letter-spacing: 0.5px;
 }
 

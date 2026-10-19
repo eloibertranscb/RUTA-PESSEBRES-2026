@@ -495,6 +495,253 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ❄️🎉 EFECTES CONTINUS PER AL GUANYADOR: NEU I CONFETI TOT EL RATO
+  let victoryEffectsRunning = false;
+  let victoryEffectsCanvas = null;
+  let victoryEffectsCtx = null;
+  let victoryParticles = [];
+
+  function startContinuousVictoryEffects() {
+    if (victoryEffectsRunning) return;
+    victoryEffectsRunning = true;
+
+    victoryEffectsCanvas = document.getElementById('victory-effects-canvas');
+    if (!victoryEffectsCanvas) {
+      victoryEffectsCanvas = document.createElement('canvas');
+      victoryEffectsCanvas.id = 'victory-effects-canvas';
+      document.body.appendChild(victoryEffectsCanvas);
+    }
+
+    victoryEffectsCtx = victoryEffectsCanvas.getContext('2d');
+
+    function resizeEffectsCanvas() {
+      if (!victoryEffectsCanvas) return;
+      victoryEffectsCanvas.width = window.innerWidth;
+      victoryEffectsCanvas.height = window.innerHeight;
+    }
+    resizeEffectsCanvas();
+    window.addEventListener('resize', resizeEffectsCanvas);
+
+    const confettiColors = ['#ffd700', '#ffb703', '#ffffff', '#e63946', '#2a9d8f', '#ff0055', '#48cae4', '#9d4edd'];
+    const snowSymbols = ['❄', '❅', '✻', '•'];
+    const totalSnow = 50;
+    const totalConfetti = 55;
+
+    victoryParticles = [];
+
+    // 1. Bolves i cristalls de neu
+    for (let i = 0; i < totalSnow; i++) {
+      victoryParticles.push({
+        type: 'snow',
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        radius: Math.random() * 3.5 + 1.5,
+        symbol: Math.random() > 0.45 ? snowSymbols[Math.floor(Math.random() * snowSymbols.length)] : null,
+        speedY: Math.random() * 1.5 + 0.8,
+        speedX: (Math.random() - 0.5) * 0.9,
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.035 + 0.015,
+        opacity: Math.random() * 0.55 + 0.45
+      });
+    }
+
+    // 2. Confeti festiu de victòria
+    for (let i = 0; i < totalConfetti; i++) {
+      victoryParticles.push({
+        type: 'confetti',
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        w: Math.random() * 10 + 6,
+        h: Math.random() * 13 + 8,
+        color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+        speedY: Math.random() * 2.8 + 1.8,
+        speedX: (Math.random() - 0.5) * 1.6,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.09,
+        tilt: Math.random() * Math.PI * 2,
+        tiltSpeed: Math.random() * 0.08 + 0.04,
+        opacity: Math.random() * 0.4 + 0.6
+      });
+    }
+
+    function renderVictoryEffects() {
+      if (!victoryEffectsRunning || !victoryEffectsCtx || !victoryEffectsCanvas) return;
+      victoryEffectsCtx.clearRect(0, 0, victoryEffectsCanvas.width, victoryEffectsCanvas.height);
+
+      const W = victoryEffectsCanvas.width;
+      const H = victoryEffectsCanvas.height;
+
+      for (let i = 0; i < victoryParticles.length; i++) {
+        const p = victoryParticles[i];
+
+        if (p.type === 'snow') {
+          p.wobble += p.wobbleSpeed;
+          p.y += p.speedY;
+          p.x += p.speedX + Math.sin(p.wobble) * 0.7;
+
+          if (p.symbol) {
+            victoryEffectsCtx.font = `${Math.floor(p.radius * 3.4)}px sans-serif`;
+            victoryEffectsCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+            victoryEffectsCtx.fillText(p.symbol, p.x, p.y);
+          } else {
+            victoryEffectsCtx.beginPath();
+            victoryEffectsCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            victoryEffectsCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+            victoryEffectsCtx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+            victoryEffectsCtx.shadowBlur = 4;
+            victoryEffectsCtx.fill();
+            victoryEffectsCtx.shadowBlur = 0;
+          }
+
+          // Tornar a caure per dalt
+          if (p.y > H + 20) {
+            p.y = -20;
+            p.x = Math.random() * W;
+          }
+          if (p.x > W + 20) p.x = -20;
+          else if (p.x < -20) p.x = W + 20;
+
+        } else if (p.type === 'confetti') {
+          p.rot += p.rotSpeed;
+          p.tilt += p.tiltSpeed;
+          p.y += p.speedY;
+          p.x += p.speedX;
+
+          victoryEffectsCtx.save();
+          victoryEffectsCtx.translate(p.x, p.y);
+          victoryEffectsCtx.rotate(p.rot);
+          const scaleY = Math.cos(p.tilt);
+          victoryEffectsCtx.scale(1, scaleY);
+          victoryEffectsCtx.fillStyle = p.color;
+          victoryEffectsCtx.globalAlpha = p.opacity;
+          victoryEffectsCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          victoryEffectsCtx.restore();
+
+          // Tornar a caure per dalt
+          if (p.y > H + 20) {
+            p.y = -20;
+            p.x = Math.random() * W;
+          }
+          if (p.x > W + 20) p.x = -20;
+          else if (p.x < -20) p.x = W + 20;
+        }
+      }
+
+      requestAnimationFrame(renderVictoryEffects);
+    }
+
+    requestAnimationFrame(renderVictoryEffects);
+  }
+
+  function stopContinuousVictoryEffects() {
+    victoryEffectsRunning = false;
+    if (victoryEffectsCanvas && victoryEffectsCtx) {
+      victoryEffectsCtx.clearRect(0, 0, victoryEffectsCanvas.width, victoryEffectsCanvas.height);
+    }
+  }
+
+  // 3D VIEWER PER AL TROFEU SOTA EL TÍTOL (Three.js OBJLoader permanent)
+  let headerTrophy3DInitialized = false;
+  let headerTrophyScene, headerTrophyCamera, headerTrophyRenderer, headerTrophyModel;
+
+  function initHeaderTrophy3D() {
+    if (headerTrophy3DInitialized) return;
+    const container = document.getElementById('trophy-header-3d-container');
+    const loadingEl = document.getElementById('trophy-header-3d-loading');
+    if (!container || !window.THREE || !window.THREE.OBJLoader) return;
+
+    try {
+      const width = container.clientWidth || 140;
+      const height = container.clientHeight || 165;
+
+      headerTrophyScene = new THREE.Scene();
+      headerTrophyCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      headerTrophyCamera.position.set(0, 0, 3.4);
+
+      headerTrophyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      headerTrophyRenderer.setSize(width, height);
+      headerTrophyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      if (THREE.sRGBEncoding) headerTrophyRenderer.outputEncoding = THREE.sRGBEncoding;
+
+      const existingCanvas = container.querySelector('canvas');
+      if (existingCanvas) existingCanvas.remove();
+      container.appendChild(headerTrophyRenderer.domElement);
+
+      // Il·luminació daurada que fa ressaltar els detalls
+      const ambientLight = new THREE.AmbientLight(0xfff5e6, 1.4);
+      headerTrophyScene.add(ambientLight);
+
+      const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+      keyLight.position.set(3, 5, 4);
+      headerTrophyScene.add(keyLight);
+
+      const fillLight = new THREE.DirectionalLight(0xffd700, 1.8);
+      fillLight.position.set(-3, 2, 3);
+      headerTrophyScene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffe680, 1.8);
+      rimLight.position.set(0, -3, -4);
+      headerTrophyScene.add(rimLight);
+
+      function animateHeaderTrophy() {
+        requestAnimationFrame(animateHeaderTrophy);
+        if (headerTrophyModel) {
+          headerTrophyModel.rotation.y += 0.018; // Donar voltes contínues tot el rato!
+        }
+        if (headerTrophyRenderer && headerTrophyScene && headerTrophyCamera) {
+          headerTrophyRenderer.render(headerTrophyScene, headerTrophyCamera);
+        }
+      }
+      animateHeaderTrophy();
+
+      const objLoader = new THREE.OBJLoader();
+      objLoader.load(
+        'trofeu_model/trofeu.obj',
+        (obj) => {
+          const goldMaterial = new THREE.MeshStandardMaterial({
+            color: 0xf5c342,
+            metalness: 0.88,
+            roughness: 0.22,
+            flatShading: false
+          });
+
+          obj.traverse((child) => {
+            if (child.isMesh) {
+              child.geometry.computeVertexNormals();
+              child.material = goldMaterial;
+            }
+          });
+
+          const box = new THREE.Box3().setFromObject(obj);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 2.1 / (maxDim || 1);
+
+          obj.scale.set(scale, scale, scale);
+          obj.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+
+          const pivot = new THREE.Group();
+          pivot.add(obj);
+          headerTrophyScene.add(pivot);
+          headerTrophyModel = pivot;
+
+          if (loadingEl) {
+            loadingEl.style.opacity = '0';
+            setTimeout(() => { if (loadingEl && loadingEl.parentNode) loadingEl.remove(); }, 300);
+          }
+          headerTrophy3DInitialized = true;
+        },
+        undefined,
+        (err) => {
+          console.warn("No s'ha pogut carregar l'OBJ al títol:", err);
+        }
+      );
+    } catch (e) {
+      console.warn("Error inicialitzant trofeu 3D del títol:", e);
+    }
+  }
+
   function checkTrophyStatus(canCelebrate = false) {
     const trophyBadge = document.getElementById('trophy-title-badge');
     if (!trophyBadge) return;
@@ -504,6 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!currentUser || approvedPoints.length === 0) {
       trophyBadge.style.display = 'none';
+      stopContinuousVictoryEffects();
       return;
     }
 
@@ -512,6 +760,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isCompleted) {
       trophyBadge.style.display = 'inline-flex';
+
+      // 1. Activar el trofeu 3D girant continu sota el títol
+      initHeaderTrophy3D();
+
+      // 2. Activar la caiguda contínua de confeti i bolves de neu per tota la pantalla
+      startContinuousVictoryEffects();
 
       // Actualitzem les dades del modal del Trofeu
       const totalPointsEl = document.getElementById('trophy-total-points');
@@ -534,6 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       trophyBadge.style.display = 'none';
+      stopContinuousVictoryEffects();
     }
   }
 

@@ -20,6 +20,9 @@
   <main class="main-content">
     <div id="map"></div>
 
+    <!-- CANVAS D'EFECTES CONTINUS PER A GUANYADORS (NEU + CONFETI TOT EL RATO) -->
+    <canvas id="victory-effects-canvas"></canvas>
+
     <!-- CAPÇALERA SUPERIOR (FLOTANT I ADAPTADA PER ESCRIPTORI I MÒBIL) -->
     <header class="app-top-header" id="app-top-header">
       <!-- TÍTOL FLOTANT (A MÒBIL INTEGRAT AMB ESTIL NET I A ESCRIPTORI A LA DRETA SENSE FONS) -->
@@ -28,19 +31,19 @@
         <span class="title-line-2">PESSEBRES</span>
         <span class="title-line-3">2026</span>
 
-        <!-- TROFEU PERMANENT (SOTA EL TÍTOL QUAN ES COMPLETA EL 100% DELS PESSEBRES) -->
+        <!-- TROFEU PERMANENT 3D SOTA EL TÍTOL (QUAN S'HA COMPLETAT EL 100% DELS PESSEBRES) -->
         <div id="trophy-title-badge" class="trophy-title-badge" style="display: none;" title="🏆 Has completat el 100% de la ruta! Clica per admirar el trofeu en 3D">
           <div class="trophy-badge-glow"></div>
-          <div class="trophy-badge-thumb">
-            <span class="trophy-badge-icon">🏆</span>
-            <div class="trophy-badge-shimmer"></div>
-            <div class="trophy-badge-sparkles">
-              <span class="tb-sparkle tbs-1">✨</span>
-              <span class="tb-sparkle tbs-2">⭐</span>
+          
+          <!-- Contenidor 3D del trofeu girant continu sota el títol -->
+          <div id="trophy-header-3d-container" class="trophy-header-3d-container">
+            <div id="trophy-header-3d-loading" class="trophy-header-3d-loading">
+              <div class="trophy-header-spinner"></div>
             </div>
           </div>
+
           <div class="trophy-badge-info">
-            <span class="tb-tag">🏆 RUTA COMPLETADA</span>
+            <span class="tb-tag">🏆 GUANYADOR 2026</span>
             <span class="tb-name">MÀSTER PESSEBRISTA</span>
           </div>
         </div>
