@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const markerMap = {};
 
+  // GESTIÓ DE CAPES DE MAPA (OFICIAL VS SATÈL·LIT)
+  let currentMapType = localStorage.getItem('pessebres_map_type') || 'streets';
+  let streetLayer = null;
+  let satelliteLayerGroup = null;
+
   function initMap() {
     // Inicialitzem el mapa
     map = L.map('map', {
@@ -51,18 +56,81 @@ document.addEventListener('DOMContentLoaded', () => {
       zoomControl: true
     });
 
-    // Capa de mapa gratuïta d'Esri World Street Map
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    // 1. Capa Oficial: Esri World Street Map
+    streetLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Mapes &copy; <a href="https://www.esri.com/">Esri</a> | Ruta dels Pessebres 2026',
-      maxZoom: 18,
+      maxZoom: 19,
       crossOrigin: true
-    }).addTo(map);
+    });
+
+    // 2. Capa Satèl·lit d'alta resolució: Imatgeria aèria + Etiquetes de carrers i camins (Híbrid)
+    const satImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Imatges &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics',
+      maxZoom: 19,
+      crossOrigin: true
+    });
+
+    const satLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      crossOrigin: true
+    });
+
+    satelliteLayerGroup = L.layerGroup([satImagery, satLabels]);
+
+    // Apliquem la capa triada (o la guardada a localStorage)
+    if (currentMapType === 'satellite') {
+      satelliteLayerGroup.addTo(map);
+    } else {
+      streetLayer.addTo(map);
+    }
 
     markersGroup = L.layerGroup().addTo(map);
 
     setTimeout(() => {
       if (map) map.invalidateSize();
     }, 250);
+
+    // Configurar commutador de capes (Oficial vs Satèl·lit)
+    window.setMapLayer = function(type) {
+      if (!map || !streetLayer || !satelliteLayerGroup) return;
+      currentMapType = type;
+      localStorage.setItem('pessebres_map_type', type);
+
+      const btnStreets = document.getElementById('btn-layer-streets');
+      const btnSatellite = document.getElementById('btn-layer-satellite');
+
+      if (type === 'satellite') {
+        if (map.hasLayer(streetLayer)) map.removeLayer(streetLayer);
+        if (!map.hasLayer(satelliteLayerGroup)) map.addLayer(satelliteLayerGroup);
+        if (btnStreets) btnStreets.classList.remove('active');
+        if (btnSatellite) btnSatellite.classList.add('active');
+        showToast('🛰️ Vista de Satèl·lit activada');
+      } else {
+        if (map.hasLayer(satelliteLayerGroup)) map.removeLayer(satelliteLayerGroup);
+        if (!map.hasLayer(streetLayer)) map.addLayer(streetLayer);
+        if (btnSatellite) btnSatellite.classList.remove('active');
+        if (btnStreets) btnStreets.classList.add('active');
+        showToast('🗺️ Mapa Oficial activat');
+      }
+    };
+
+    const btnLayerStreets = document.getElementById('btn-layer-streets');
+    const btnLayerSatellite = document.getElementById('btn-layer-satellite');
+
+    if (currentMapType === 'satellite') {
+      if (btnLayerStreets) btnLayerStreets.classList.remove('active');
+      if (btnLayerSatellite) btnLayerSatellite.classList.add('active');
+    } else {
+      if (btnLayerSatellite) btnLayerSatellite.classList.remove('active');
+      if (btnLayerStreets) btnLayerStreets.classList.add('active');
+    }
+
+    if (btnLayerStreets) {
+      btnLayerStreets.addEventListener('click', () => window.setMapLayer('streets'));
+    }
+    if (btnLayerSatellite) {
+      btnLayerSatellite.addEventListener('click', () => window.setMapLayer('satellite'));
+    }
 
     // Event de clic al mapa
     map.on('click', (e) => {
