@@ -2624,4 +2624,117 @@ body {
   }
 }
 
+/* ==========================================================================
+   ESTILS PER AL MODE SATÈL·LIT (CONTRAST MÀXIM AMB TEXT BEIX I DAURAT)
+   ========================================================================== */
+
+/* 1. Títol flotant superior (Beix càlid i daurat noble amb ombra de contrast) */
+body.map-mode-satellite .floating-title-overlay .title-line-1,
+body.map-mode-satellite .floating-title-overlay .title-line-2 {
+  color: #fdfbf7;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.95), 
+    0 0 12px rgba(0, 0, 0, 0.95), 
+    0 0 24px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(0, 0, 0, 0.7);
+}
+
+body.map-mode-satellite .floating-title-overlay .title-line-3 {
+  color: #ffd700;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.95), 
+    0 0 12px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+/* 2. Panell de l'Índex de Pessebres inferior esquerre */
+body.map-mode-satellite .floating-index-panel {
+  background: rgba(16, 12, 8, 0.78);
+  border: 1.5px solid rgba(229, 184, 105, 0.55);
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+body.map-mode-satellite .index-panel-header {
+  color: #ffd700;
+  border-bottom: 2px solid rgba(229, 184, 105, 0.6);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+body.map-mode-satellite .index-item {
+  color: #fdfbf7;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.75);
+}
+
+body.map-mode-satellite .index-item:hover {
+  color: #ffd700;
+  transform: translateX(4px);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+body.map-mode-satellite .index-item-bullet {
+  background: #ffd700;
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.85);
+}
+
+body.map-mode-satellite .index-panel-empty {
+  color: #e8dccb;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+body.map-mode-satellite .btn-drawer-pdf {
+  background: rgba(229, 184, 105, 0.15);
+  border: 1px solid rgba(229, 184, 105, 0.5);
+  color: #ffd700;
+}
+
+body.map-mode-satellite .btn-drawer-pdf:hover {
+  background: #ffd700;
+  color: #2a1508;
+}
+
+/* 3. Adaptació mòbil per al mode satèl·lit */
+@media (max-width: 768px) {
+  body.map-mode-satellite .app-top-header {
+    background: rgba(18, 12, 8, 0.92);
+    border-color: rgba(229, 184, 105, 0.55);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  }
+
+  body.map-mode-satellite .floating-title-overlay .title-line-1,
+  body.map-mode-satellite .floating-title-overlay .title-line-2 {
+    color: #fdfbf7;
+  }
+
+  body.map-mode-satellite .floating-title-overlay .title-line-3 {
+    color: #ffd700;
+  }
+
+  body.map-mode-satellite .floating-index-panel {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  body.map-mode-satellite .index-panel-toggle {
+    background: rgba(18, 12, 8, 0.92);
+    border-color: #d4af37;
+    color: #ffd700;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  }
+
+  body.map-mode-satellite .index-panel-content {
+    background: rgba(18, 12, 8, 0.95);
+    border-color: #d4af37;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  }
+}
+
+
 

@@ -48,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let streetLayer = null;
   let satelliteLayerGroup = null;
 
+  if (currentMapType === 'satellite') {
+    document.body.classList.add('map-mode-satellite');
+  }
+
   function initMap() {
     // Inicialitzem el mapa
     map = L.map('map', {
@@ -80,8 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apliquem la capa triada (o la guardada a localStorage)
     if (currentMapType === 'satellite') {
       satelliteLayerGroup.addTo(map);
+      document.body.classList.add('map-mode-satellite');
     } else {
       streetLayer.addTo(map);
+      document.body.classList.remove('map-mode-satellite');
     }
 
     markersGroup = L.layerGroup().addTo(map);
@@ -104,12 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!map.hasLayer(satelliteLayerGroup)) map.addLayer(satelliteLayerGroup);
         if (btnStreets) btnStreets.classList.remove('active');
         if (btnSatellite) btnSatellite.classList.add('active');
+        document.body.classList.add('map-mode-satellite');
         showToast('🛰️ Vista de Satèl·lit activada');
       } else {
         if (map.hasLayer(satelliteLayerGroup)) map.removeLayer(satelliteLayerGroup);
         if (!map.hasLayer(streetLayer)) map.addLayer(streetLayer);
         if (btnSatellite) btnSatellite.classList.remove('active');
         if (btnStreets) btnStreets.classList.add('active');
+        document.body.classList.remove('map-mode-satellite');
         showToast('🗺️ Mapa Oficial activat');
       }
     };
