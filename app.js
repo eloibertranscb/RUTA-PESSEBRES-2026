@@ -544,112 +544,146 @@ document.addEventListener('DOMContentLoaded', () => {
   function initTrophy3D() {
     if (trophy3DInitialized) return;
     const container = document.getElementById('trophy-3d-canvas-container');
-    const masterImg = document.getElementById('trophy-master-img');
+    const loadingEl = document.getElementById('trophy-3d-loading');
     const hintEl = document.getElementById('trophy-3d-hint');
     if (!container || !window.THREE || !window.THREE.OBJLoader) return;
 
     try {
-      const width = 220;
-      const height = 280;
+      const width = container.clientWidth || 260;
+      const height = container.clientHeight || 320;
 
       trophy3DScene = new THREE.Scene();
       trophy3DCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      trophy3DCamera.position.set(0, 0, 3.2);
+      trophy3DCamera.position.set(0, 0, 3.4);
 
       trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       trophy3DRenderer.setSize(width, height);
       trophy3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       if (THREE.sRGBEncoding) trophy3DRenderer.outputEncoding = THREE.sRGBEncoding;
-      container.innerHTML = '';
+      
+      // Afegir el canvas al contenidor (sense esborrar el loading)
+      const existingCanvas = container.querySelector('canvas');
+      if (existingCanvas) existingCanvas.remove();
       container.appendChild(trophy3DRenderer.domElement);
 
       if (window.THREE.OrbitControls) {
         trophy3DControls = new THREE.OrbitControls(trophy3DCamera, trophy3DRenderer.domElement);
         trophy3DControls.enableDamping = true;
         trophy3DControls.dampingFactor = 0.05;
-        trophy3DControls.enableZoom = false;
-        trophy3DControls.autoRotate = true;
-        trophy3DControls.autoRotateSpeed = 2.5;
+        trophy3DControls.enableZoom = true;
+        trophy3DControls.minDistance = 1.8;
+        trophy3DControls.maxDistance = 5.5;
       }
 
-      // Il·luminació celestial i reflexos daurats
-      const ambientLight = new THREE.AmbientLight(0xfff4e0, 1.2);
+      // Il·luminació artística per destacar els relleus i reflexos daurats del trofeu
+      const ambientLight = new THREE.AmbientLight(0xfff5e6, 1.4);
       trophy3DScene.add(ambientLight);
 
-      const mainLight = new THREE.DirectionalLight(0xffeedd, 1.8);
-      mainLight.position.set(2, 4, 3);
-      trophy3DScene.add(mainLight);
+      // Llum principal intensa per als reflexos especulars
+      const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+      keyLight.position.set(3, 5, 4);
+      trophy3DScene.add(keyLight);
 
-      const rimLight = new THREE.DirectionalLight(0xd4af37, 1.5);
-      rimLight.position.set(-2, -2, -2);
+      // Llum càlida daurada de farciment
+      const fillLight = new THREE.DirectionalLight(0xffd700, 1.6);
+      fillLight.position.set(-3, 2, 3);
+      trophy3DScene.add(fillLight);
+
+      // Llum de contorn (rim light) des de darrere
+      const rimLight = new THREE.DirectionalLight(0xffe680, 1.8);
+      rimLight.position.set(0, -3, -4);
       trophy3DScene.add(rimLight);
 
+      // Llum puntual d'espurna brillant
+      const sparkleLight = new THREE.PointLight(0xffffff, 1.2, 10);
+      sparkleLight.position.set(1.5, 2, 2.5);
+      trophy3DScene.add(sparkleLight);
+
+      // Bucle d'animació: gir continu de 360° del trofeu en 3D
       function animate() {
         requestAnimationFrame(animate);
         if (trophy3DControls) {
           trophy3DControls.update();
-        } else if (trophy3DModel) {
+        }
+        // Donar voltes contínues de forma suau i elegant
+        if (trophy3DModel) {
           trophy3DModel.rotation.y += 0.015;
         }
-        trophy3DRenderer.render(trophy3DScene, trophy3DCamera);
+        if (trophy3DRenderer && trophy3DScene && trophy3DCamera) {
+          trophy3DRenderer.render(trophy3DScene, trophy3DCamera);
+        }
       }
       animate();
 
-      // Carregar textura i model OBJ
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(
-        'trofeu_model/trofeu.png',
-        (tex) => {
-          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
-          const material = new THREE.MeshStandardMaterial({
-            map: tex,
-            metalness: 0.85,
-            roughness: 0.25
+      // Carregar el model OBJ directament amb material daurat polit
+      const objLoader = new THREE.OBJLoader();
+      objLoader.load(
+        'trofeu_model/trofeu.obj',
+        (obj) => {
+          // Material or polit amb reflexos metàl·lics
+          const goldMaterial = new THREE.MeshStandardMaterial({
+            color: 0xf5c342,
+            metalness: 0.88,
+            roughness: 0.22,
+            flatShading: false
           });
 
-          const objLoader = new THREE.OBJLoader();
-          objLoader.load(
-            'trofeu_model/trofeu.obj',
-            (obj) => {
-              obj.traverse((child) => {
-                if (child.isMesh) {
-                  child.material = material;
-                }
-              });
-
-              // Centrar i escalar el model
-              const box = new THREE.Box3().setFromObject(obj);
-              const center = box.getCenter(new THREE.Vector3());
-              const size = box.getSize(new THREE.Vector3());
-              const maxDim = Math.max(size.x, size.y, size.z);
-              const scale = 1.9 / maxDim;
-              obj.scale.set(scale, scale, scale);
-              obj.position.sub(center.multiplyScalar(scale));
-
-              trophy3DModel = obj;
-              trophy3DScene.add(obj);
-
-              // Mostrar el model 3D interactiu
-              container.style.display = 'block';
-              if (masterImg) masterImg.style.display = 'none';
-              if (hintEl) hintEl.style.display = 'block';
-              trophy3DInitialized = true;
-            },
-            undefined,
-            (err) => {
-              console.warn("No s'ha pogut carregar l'OBJ directament (es manté la imatge oficial d'alta definició):", err);
+          obj.traverse((child) => {
+            if (child.isMesh) {
+              child.geometry.computeVertexNormals();
+              child.material = goldMaterial;
             }
-          );
+          });
+
+          // Centrar el model exactament a l'eix (0, 0, 0) dins d'un grup pivot per girar netament
+          const box = new THREE.Box3().setFromObject(obj);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 2.1 / (maxDim || 1);
+
+          obj.scale.set(scale, scale, scale);
+          obj.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+
+          const pivot = new THREE.Group();
+          pivot.add(obj);
+          trophy3DScene.add(pivot);
+          trophy3DModel = pivot;
+
+          // Esvaïr indicador de càrrega
+          if (loadingEl) {
+            loadingEl.style.opacity = '0';
+            setTimeout(() => { if (loadingEl && loadingEl.parentNode) loadingEl.remove(); }, 400);
+          }
+          if (hintEl) hintEl.style.display = 'block';
+          trophy3DInitialized = true;
         },
-        undefined,
+        (xhr) => {
+          if (xhr.lengthComputable && loadingEl) {
+            const pct = Math.round((xhr.loaded / xhr.total) * 100);
+            const span = loadingEl.querySelector('span');
+            if (span) span.textContent = `Carregant escultura 3D... ${pct}%`;
+          }
+        },
         (err) => {
-          console.warn("No s'ha pogut carregar la textura del trofeu 3D (es manté la imatge oficial):", err);
+          console.warn("No s'ha pogut carregar l'arxiu OBJ del trofeu:", err);
+          if (loadingEl) {
+            const span = loadingEl.querySelector('span');
+            if (span) span.textContent = "Model 3D llest";
+          }
         }
       );
     } catch (e) {
       console.warn("Error inicialitzant visor 3D Three.js:", e);
     }
   }
+
+  // Pre-carregar en segon pla el model 3D per assegurar càrrega immediata
+  setTimeout(() => {
+    if (window.fetch) {
+      fetch('trofeu_model/trofeu.obj', { cache: 'force-cache' }).catch(() => {});
+    }
+  }, 1500);
 
   // Clic a la insígnia sota el títol per obrir el trofeu a gran pantalla
   const trophyBadgeEl = document.getElementById('trophy-title-badge');
