@@ -39,6 +39,22 @@ const ADMIN_CREDENTIALS = {
   password: 'adminpessebres3726c9b'
 };
 
+function encodeUserAuthToken(pwd) {
+  try {
+    return btoa(encodeURIComponent(pwd));
+  } catch (e) {
+    return '';
+  }
+}
+
+function decodeUserAuthToken(token) {
+  try {
+    return decodeURIComponent(atob(token));
+  } catch (e) {
+    return null;
+  }
+}
+
 class PessebresDB {
   constructor() {
     this.supabase = null;
@@ -60,18 +76,12 @@ class PessebresDB {
     });
     localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(pts));
 
-    // Netejar usuaris inventats de localStorage i deixar participants a 0
+    // Inicialitzar usuaris si no n'hi ha cap
     const storedUsers = localStorage.getItem(DB_KEYS.USERS);
     if (!storedUsers) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify([
         { id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', role: 'ADMIN', created_at: new Date().toISOString() }
       ]));
-    } else {
-      const cleanUsers = JSON.parse(storedUsers).filter(u => u.username === 'admin');
-      if (cleanUsers.length === 0) {
-        cleanUsers.push({ id: 'usr_admin', username: 'admin', email: 'admin@pessebres.cat', role: 'ADMIN', created_at: new Date().toISOString() });
-      }
-      localStorage.setItem(DB_KEYS.USERS, JSON.stringify(cleanUsers));
     }
 
     if (!localStorage.getItem(DB_KEYS.VISITS)) {
@@ -93,6 +103,23 @@ class PessebresDB {
     }
   }
 
+  // --- MAPA DE CONTRASENYES PERMANENT ---
+  getPasswordMap() {
+    try {
+      return JSON.parse(localStorage.getItem('pessebres_user_passwords') || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  savePasswordMap(map) {
+    try {
+      localStorage.setItem('pessebres_user_passwords', JSON.stringify(map || {}));
+    } catch (e) {
+      console.warn("Error guardant mapa de contrasenyes:", e);
+    }
+  }
+
   // --- SINCRONITZACIÓ AMB SUPABASE ---
   async syncFromCloud() {
     if (!this.isCloudEnabled || !this.supabase) return;
@@ -104,7 +131,23 @@ class PessebresDB {
       ]);
 
       if (!resUsers.error && resUsers.data) {
-        localStorage.setItem(DB_KEYS.USERS, JSON.stringify(resUsers.data));
+        const passMap = this.getPasswordMap();
+        resUsers.data.forEach(u => {
+          if (u.username && u.email && u.email.includes('__p_')) {
+            const m = u.email.match(/__p_([A-Za-z0-9+/=]+)@/);
+            if (m && m[1]) {
+              const decoded = decodeUserAuthToken(m[1]);
+              if (decoded) passMap[u.username.toLowerCase()] = decoded;
+            }
+          }
+        });
+        this.savePasswordMap(passMap);
+
+        const mergedUsers = resUsers.data.map(u => ({
+          ...u,
+          password: passMap[u.username?.toLowerCase()] || u.password || ''
+        }));
+        localStorage.setItem(DB_KEYS.USERS, JSON.stringify(mergedUsers));
       }
       if (!resPoints.error && resPoints.data && resPoints.data.length > 0) {
         let cleanCloud = resPoints.data.filter(p => !p.id.startsWith('prova_') && !(parseInt(p.id.replace('pt_', ''), 10) >= 20 && (p.submitted_by === 'Organització' || p.submitted_by === 'Prova')));
@@ -162,14 +205,15 @@ class PessebresDB {
     window.dispatchEvent(new CustomEvent('db:changed'));
   }
 
-  async loginOrRegisterDirect(username, password) {
-    const userTerm = username.trim();
-    if (!userTerm) throw new Error("Cal escriure un nom.");
-    if (!password) throw new Error("Cal escriure una contrasenya.");
+  async loginOrRegisterDirect(username, password, mode = 'any') {
+    const userTerm = (username || '').trim();
+    const passTerm = (password || '').trim();
+    if (!userTerm) throw new Error("Cal escriure un nom d'usuari.");
+    if (!passTerm) throw new Error("Cal escriure una contrasenya.");
 
     // 1. Verificació d'Administrador
-    if (userTerm.toLowerCase() === ADMIN_CREDENTIALS.username) {
-      if (password === ADMIN_CREDENTIALS.password) {
+    if (userTerm.toLowerCase() === ADMIN_CREDENTIALS.username.toLowerCase()) {
+      if (passTerm === ADMIN_CREDENTIALS.password) {
         const adminUser = {
           id: 'usr_admin',
           username: 'admin',
@@ -184,26 +228,71 @@ class PessebresDB {
       }
     }
 
-    // 2. Comprovar si ja existeix
+    // 2. Comprovar si l'usuari ja existeix
     const users = this.getUsers();
-    const existing = users.find(u => u.username.toLowerCase() === userTerm.toLowerCase());
+    const existing = users.find(u => u.username && u.username.toLowerCase() === userTerm.toLowerCase());
+    const passMap = this.getPasswordMap();
+
+    // Si està a la pestanya 'Registrar-me' i el nom ja està agafat:
+    if (mode === 'register' && existing) {
+      throw new Error(`Aquest nom d'usuari ('${userTerm}') ja està registrat! Si és el teu compte, fes clic a 'INICIAR SESSIÓ' per entrar.`);
+    }
+
+    // Si està a la pestanya 'Iniciar Sessió' i l'usuari no existeix:
+    if (mode === 'login' && !existing) {
+      throw new Error(`Aquest nom d'usuari ('${userTerm}') no existeix. Si ets un nou participant, fes clic a 'REGISTRE NOU' per crear el teu perfil.`);
+    }
 
     if (existing) {
-      if (existing.password && existing.password !== password) {
+      // Obtenir la contrasenya guardada (del mapa local, de l'objecte usuari, o del token de l'email)
+      let registeredPass = passMap[existing.username.toLowerCase()] || existing.password;
+      if (!registeredPass && existing.email && existing.email.includes('__p_')) {
+        const m = existing.email.match(/__p_([A-Za-z0-9+/=]+)@/);
+        if (m && m[1]) {
+          registeredPass = decodeUserAuthToken(m[1]);
+        }
+      }
+
+      // Validació estricta de contrasenya:
+      if (registeredPass && registeredPass !== passTerm) {
         throw new Error("Contrasenya incorrecta per a aquest usuari.");
       }
+
+      // Si no tenia contrasenya registrada prèviament, l'associem ara
+      if (!registeredPass) {
+        passMap[existing.username.toLowerCase()] = passTerm;
+        this.savePasswordMap(passMap);
+        existing.password = passTerm;
+        const uIdx = users.findIndex(u => u.id === existing.id);
+        if (uIdx !== -1) users[uIdx] = existing;
+        localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+        if (this.isCloudEnabled && this.supabase) {
+          const safeSlug = existing.username.toLowerCase().replace(/[^a-z0-9]/g, '.');
+          const token = encodeUserAuthToken(passTerm);
+          this.supabase.from('users').update({ email: `${safeSlug}__p_${token}@pessebres.cat` }).eq('id', existing.id).then();
+        }
+      }
+
       this.setCurrentUser(existing);
       return { user: existing, isNew: false, isAdmin: false };
     } else {
-      // 3. Crear compte automàticament de forma transparent
+      // 3. Crear compte nou
+      const safeSlug = userTerm.toLowerCase().replace(/[^a-z0-9]/g, '.');
+      const token = encodeUserAuthToken(passTerm);
+      const emailWithAuth = `${safeSlug}__p_${token}@pessebres.cat`;
+
       const newUser = {
         id: 'usr_' + Date.now(),
         username: userTerm,
-        password: password,
-        email: userTerm.toLowerCase().replace(/\s+/g, '.') + '@pessebres.cat',
+        password: passTerm,
+        email: emailWithAuth,
         role: 'USER',
         created_at: new Date().toISOString()
       };
+
+      passMap[userTerm.toLowerCase()] = passTerm;
+      this.savePasswordMap(passMap);
 
       users.push(newUser);
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));

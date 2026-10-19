@@ -563,11 +563,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ❄️🎉 EFECTES CONTINUS PER AL GUANYADOR: NEU I CONFETI TOT EL RATO
+  // ❄️🎉 EFECTES CONTINUS PER AL GUANYADOR: NEU I CONFETI TOT EL RATO (OPTIMITZAT 60 FPS)
   let victoryEffectsRunning = false;
   let victoryEffectsCanvas = null;
   let victoryEffectsCtx = null;
-  let victoryParticles = [];
+  let victoryParticlesSnow = [];
+  let victoryParticlesConfetti = [];
+  let victoryEffectsAnimId = null;
 
   function startContinuousVictoryEffects() {
     if (victoryEffectsRunning) return;
@@ -588,132 +590,148 @@ document.addEventListener('DOMContentLoaded', () => {
       victoryEffectsCanvas.height = window.innerHeight;
     }
     resizeEffectsCanvas();
+    window.removeEventListener('resize', resizeEffectsCanvas);
     window.addEventListener('resize', resizeEffectsCanvas);
 
     const confettiColors = ['#ffd700', '#ffb703', '#ffffff', '#e63946', '#2a9d8f', '#ff0055', '#48cae4', '#9d4edd'];
-    const snowSymbols = ['❄', '❅', '✻', '•'];
-    const totalSnow = 50;
-    const totalConfetti = 55;
+    const isMobile = window.innerWidth <= 768;
+    const totalSnow = isMobile ? 18 : 28;
+    const totalConfetti = isMobile ? 18 : 26;
 
-    victoryParticles = [];
-
-    // 1. Bolves i cristalls de neu
+    victoryParticlesSnow = [];
     for (let i = 0; i < totalSnow; i++) {
-      victoryParticles.push({
-        type: 'snow',
+      victoryParticlesSnow.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        radius: Math.random() * 3.5 + 1.5,
-        symbol: Math.random() > 0.45 ? snowSymbols[Math.floor(Math.random() * snowSymbols.length)] : null,
-        speedY: Math.random() * 1.5 + 0.8,
-        speedX: (Math.random() - 0.5) * 0.9,
+        radius: Math.random() * 2.2 + 1.2,
+        speedY: Math.random() * 1.2 + 0.6,
+        speedX: (Math.random() - 0.5) * 0.7,
         wobble: Math.random() * Math.PI * 2,
-        wobbleSpeed: Math.random() * 0.035 + 0.015,
-        opacity: Math.random() * 0.55 + 0.45
+        wobbleSpeed: Math.random() * 0.03 + 0.01
       });
     }
 
-    // 2. Confeti festiu de victòria
+    victoryParticlesConfetti = [];
     for (let i = 0; i < totalConfetti; i++) {
-      victoryParticles.push({
-        type: 'confetti',
+      victoryParticlesConfetti.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        w: Math.random() * 10 + 6,
-        h: Math.random() * 13 + 8,
+        w: Math.random() * 8 + 5,
+        h: Math.random() * 10 + 6,
         color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
-        speedY: Math.random() * 2.8 + 1.8,
-        speedX: (Math.random() - 0.5) * 1.6,
+        speedY: Math.random() * 2.2 + 1.2,
+        speedX: (Math.random() - 0.5) * 1.2,
         rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.09,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
         tilt: Math.random() * Math.PI * 2,
-        tiltSpeed: Math.random() * 0.08 + 0.04,
-        opacity: Math.random() * 0.4 + 0.6
+        tiltSpeed: Math.random() * 0.07 + 0.03
       });
     }
 
     function renderVictoryEffects() {
-      if (!victoryEffectsRunning || !victoryEffectsCtx || !victoryEffectsCanvas) return;
-      victoryEffectsCtx.clearRect(0, 0, victoryEffectsCanvas.width, victoryEffectsCanvas.height);
+      if (!victoryEffectsRunning || !victoryEffectsCtx || !victoryEffectsCanvas) {
+        victoryEffectsAnimId = null;
+        return;
+      }
+      if (document.hidden) {
+        victoryEffectsAnimId = requestAnimationFrame(renderVictoryEffects);
+        return;
+      }
 
       const W = victoryEffectsCanvas.width;
       const H = victoryEffectsCanvas.height;
+      victoryEffectsCtx.clearRect(0, 0, W, H);
 
-      for (let i = 0; i < victoryParticles.length; i++) {
-        const p = victoryParticles[i];
+      // 1. NEU ULTRA RÀPIDA: Dibuixada en un sol path per a 0 lag (sense shadowBlur ni fonts)
+      victoryEffectsCtx.beginPath();
+      victoryEffectsCtx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+      for (let i = 0; i < victoryParticlesSnow.length; i++) {
+        const p = victoryParticlesSnow[i];
+        p.wobble += p.wobbleSpeed;
+        p.y += p.speedY;
+        p.x += p.speedX + Math.sin(p.wobble) * 0.5;
 
-        if (p.type === 'snow') {
-          p.wobble += p.wobbleSpeed;
-          p.y += p.speedY;
-          p.x += p.speedX + Math.sin(p.wobble) * 0.7;
+        if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; }
+        if (p.x > W + 10) p.x = -10;
+        else if (p.x < -10) p.x = W + 10;
 
-          if (p.symbol) {
-            victoryEffectsCtx.font = `${Math.floor(p.radius * 3.4)}px sans-serif`;
-            victoryEffectsCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-            victoryEffectsCtx.fillText(p.symbol, p.x, p.y);
-          } else {
-            victoryEffectsCtx.beginPath();
-            victoryEffectsCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            victoryEffectsCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-            victoryEffectsCtx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-            victoryEffectsCtx.shadowBlur = 4;
-            victoryEffectsCtx.fill();
-            victoryEffectsCtx.shadowBlur = 0;
-          }
+        victoryEffectsCtx.moveTo(p.x + p.radius, p.y);
+        victoryEffectsCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      }
+      victoryEffectsCtx.fill();
 
-          // Tornar a caure per dalt
-          if (p.y > H + 20) {
-            p.y = -20;
-            p.x = Math.random() * W;
-          }
-          if (p.x > W + 20) p.x = -20;
-          else if (p.x < -20) p.x = W + 20;
+      // 2. CONFETI LLEUGER I FLUID (Directe i ràpid)
+      for (let i = 0; i < victoryParticlesConfetti.length; i++) {
+        const p = victoryParticlesConfetti[i];
+        p.rot += p.rotSpeed;
+        p.tilt += p.tiltSpeed;
+        p.y += p.speedY;
+        p.x += p.speedX;
 
-        } else if (p.type === 'confetti') {
-          p.rot += p.rotSpeed;
-          p.tilt += p.tiltSpeed;
-          p.y += p.speedY;
-          p.x += p.speedX;
+        if (p.y > H + 15) { p.y = -15; p.x = Math.random() * W; }
+        if (p.x > W + 15) p.x = -15;
+        else if (p.x < -15) p.x = W + 15;
 
-          victoryEffectsCtx.save();
-          victoryEffectsCtx.translate(p.x, p.y);
-          victoryEffectsCtx.rotate(p.rot);
-          const scaleY = Math.cos(p.tilt);
-          victoryEffectsCtx.scale(1, scaleY);
-          victoryEffectsCtx.fillStyle = p.color;
-          victoryEffectsCtx.globalAlpha = p.opacity;
-          victoryEffectsCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-          victoryEffectsCtx.restore();
-
-          // Tornar a caure per dalt
-          if (p.y > H + 20) {
-            p.y = -20;
-            p.x = Math.random() * W;
-          }
-          if (p.x > W + 20) p.x = -20;
-          else if (p.x < -20) p.x = W + 20;
-        }
+        victoryEffectsCtx.save();
+        victoryEffectsCtx.translate(p.x, p.y);
+        victoryEffectsCtx.rotate(p.rot);
+        const scaleY = Math.cos(p.tilt);
+        victoryEffectsCtx.scale(1, scaleY);
+        victoryEffectsCtx.fillStyle = p.color;
+        victoryEffectsCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        victoryEffectsCtx.restore();
       }
 
-      requestAnimationFrame(renderVictoryEffects);
+      victoryEffectsAnimId = requestAnimationFrame(renderVictoryEffects);
     }
 
-    requestAnimationFrame(renderVictoryEffects);
+    if (!victoryEffectsAnimId) {
+      victoryEffectsAnimId = requestAnimationFrame(renderVictoryEffects);
+    }
   }
 
   function stopContinuousVictoryEffects() {
     victoryEffectsRunning = false;
+    if (victoryEffectsAnimId) {
+      cancelAnimationFrame(victoryEffectsAnimId);
+      victoryEffectsAnimId = null;
+    }
     if (victoryEffectsCanvas && victoryEffectsCtx) {
       victoryEffectsCtx.clearRect(0, 0, victoryEffectsCanvas.width, victoryEffectsCanvas.height);
     }
   }
 
-  // 3D VIEWER PER AL TROFEU SOTA EL TÍTOL (Three.js OBJLoader permanent)
+  // 3D VIEWER PER AL TROFEU SOTA EL TÍTOL (Three.js OBJLoader permanent optimitzat)
   let headerTrophy3DInitialized = false;
   let headerTrophyScene, headerTrophyCamera, headerTrophyRenderer, headerTrophyModel;
+  let headerTrophyAnimId = null;
+
+  function animateHeaderTrophy() {
+    const badge = document.getElementById('trophy-title-badge');
+    if (!badge || badge.style.display === 'none' || document.hidden) {
+      headerTrophyAnimId = null;
+      return; // Pausar per no consumir GPU innecessàriament
+    }
+    headerTrophyAnimId = requestAnimationFrame(animateHeaderTrophy);
+    if (headerTrophyModel) {
+      headerTrophyModel.rotation.y += 0.018; // Donar voltes contínues
+    }
+    if (headerTrophyRenderer && headerTrophyScene && headerTrophyCamera) {
+      headerTrophyRenderer.render(headerTrophyScene, headerTrophyCamera);
+    }
+  }
+
+  function startHeaderTrophyLoop() {
+    if (!headerTrophyAnimId && headerTrophy3DInitialized) {
+      headerTrophyAnimId = requestAnimationFrame(animateHeaderTrophy);
+    }
+  }
 
   function initHeaderTrophy3D() {
-    if (headerTrophy3DInitialized) return;
+    if (headerTrophy3DInitialized) {
+      startHeaderTrophyLoop();
+      return;
+    }
     const container = document.getElementById('trophy-header-3d-container');
     const loadingEl = document.getElementById('trophy-header-3d-loading');
     if (!container || !window.THREE || !window.THREE.OBJLoader) return;
@@ -726,9 +744,9 @@ document.addEventListener('DOMContentLoaded', () => {
       headerTrophyCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       headerTrophyCamera.position.set(0, 0, 3.4);
 
-      headerTrophyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      headerTrophyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'low-power' });
       headerTrophyRenderer.setSize(width, height);
-      headerTrophyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      headerTrophyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       if (THREE.sRGBEncoding) headerTrophyRenderer.outputEncoding = THREE.sRGBEncoding;
 
       const existingCanvas = container.querySelector('canvas');
@@ -751,16 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
       rimLight.position.set(0, -3, -4);
       headerTrophyScene.add(rimLight);
 
-      function animateHeaderTrophy() {
-        requestAnimationFrame(animateHeaderTrophy);
-        if (headerTrophyModel) {
-          headerTrophyModel.rotation.y += 0.018; // Donar voltes contínues tot el rato!
-        }
-        if (headerTrophyRenderer && headerTrophyScene && headerTrophyCamera) {
-          headerTrophyRenderer.render(headerTrophyScene, headerTrophyCamera);
-        }
-      }
-      animateHeaderTrophy();
+      startHeaderTrophyLoop();
 
       const objLoader = new THREE.OBJLoader();
       objLoader.load(
@@ -857,15 +866,47 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       trophyBadge.style.display = 'none';
       stopContinuousVictoryEffects();
+      if (headerTrophyAnimId) {
+        cancelAnimationFrame(headerTrophyAnimId);
+        headerTrophyAnimId = null;
+      }
     }
   }
 
-  // 3D VIEWER PER AL TROFEU OFICIAL (Three.js OBJLoader)
+  // 3D VIEWER PER AL TROFEU OFICIAL (Three.js OBJLoader optimitzat)
   let trophy3DInitialized = false;
   let trophy3DScene, trophy3DCamera, trophy3DRenderer, trophy3DControls, trophy3DModel;
+  let trophy3DAnimId = null;
+
+  function animateTrophyModal() {
+    const modalEl = document.getElementById('modal-trophy');
+    if (!modalEl || !modalEl.classList.contains('active') || document.hidden) {
+      trophy3DAnimId = null;
+      return; // Pausar quan el modal està tancat
+    }
+    trophy3DAnimId = requestAnimationFrame(animateTrophyModal);
+    if (trophy3DControls) {
+      trophy3DControls.update();
+    }
+    if (trophy3DModel) {
+      trophy3DModel.rotation.y += 0.015;
+    }
+    if (trophy3DRenderer && trophy3DScene && trophy3DCamera) {
+      trophy3DRenderer.render(trophy3DScene, trophy3DCamera);
+    }
+  }
+
+  function startTrophyModalLoop() {
+    if (!trophy3DAnimId && trophy3DInitialized) {
+      trophy3DAnimId = requestAnimationFrame(animateTrophyModal);
+    }
+  }
 
   function initTrophy3D() {
-    if (trophy3DInitialized) return;
+    if (trophy3DInitialized) {
+      startTrophyModalLoop();
+      return;
+    }
     const container = document.getElementById('trophy-3d-canvas-container');
     const loadingEl = document.getElementById('trophy-3d-loading');
     const hintEl = document.getElementById('trophy-3d-hint');
@@ -879,9 +920,9 @@ document.addEventListener('DOMContentLoaded', () => {
       trophy3DCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       trophy3DCamera.position.set(0, 0, 3.4);
 
-      trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'low-power' });
       trophy3DRenderer.setSize(width, height);
-      trophy3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      trophy3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       if (THREE.sRGBEncoding) trophy3DRenderer.outputEncoding = THREE.sRGBEncoding;
       
       // Afegir el canvas al contenidor (sense esborrar el loading)
@@ -922,21 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sparkleLight.position.set(1.5, 2, 2.5);
       trophy3DScene.add(sparkleLight);
 
-      // Bucle d'animació: gir continu de 360° del trofeu en 3D
-      function animate() {
-        requestAnimationFrame(animate);
-        if (trophy3DControls) {
-          trophy3DControls.update();
-        }
-        // Donar voltes contínues de forma suau i elegant
-        if (trophy3DModel) {
-          trophy3DModel.rotation.y += 0.015;
-        }
-        if (trophy3DRenderer && trophy3DScene && trophy3DCamera) {
-          trophy3DRenderer.render(trophy3DScene, trophy3DCamera);
-        }
-      }
-      animate();
+      startTrophyModalLoop();
 
       // Carregar el model OBJ directament amb material daurat polit
       const objLoader = new THREE.OBJLoader();
@@ -1352,12 +1379,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = document.getElementById(modalId);
     if (target) {
       target.classList.add('active');
+      if (modalId === 'modal-trophy' && typeof startTrophyModalLoop === 'function') {
+        startTrophyModalLoop();
+      }
     }
   }
 
   function hideAllModals() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    if (trophy3DAnimId) {
+      cancelAnimationFrame(trophy3DAnimId);
+      trophy3DAnimId = null;
+    }
   }
+
+  // Pausar o reprendre bucles quan la pestanya es minimitza o torna a primer pla
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      if (victoryEffectsRunning && !victoryEffectsAnimId) {
+        startContinuousVictoryEffects();
+      }
+      const badge = document.getElementById('trophy-title-badge');
+      if (badge && badge.style.display !== 'none' && !headerTrophyAnimId) {
+        startHeaderTrophyLoop();
+      }
+      const modalEl = document.getElementById('modal-trophy');
+      if (modalEl && modalEl.classList.contains('active') && !trophy3DAnimId) {
+        startTrophyModalLoop();
+      }
+    }
+  });
 
   document.querySelectorAll('.btn-close-modal').forEach(btn => {
     btn.addEventListener('click', hideAllModals);
@@ -1635,7 +1686,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const authHelpNote = document.getElementById('auth-help-note');
   const authLabelUser = document.getElementById('auth-label-username');
 
+  let currentAuthMode = 'register';
+
   function setAuthMode(mode) {
+    currentAuthMode = mode;
     if (mode === 'register') {
       if (tabRegister) tabRegister.classList.add('active');
       if (tabLogin) tabLogin.classList.remove('active');
@@ -1688,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const u = document.getElementById('auth-username').value;
       const p = document.getElementById('auth-password').value;
       try {
-        const res = await window.db.loginOrRegisterDirect(u, p);
+        const res = await window.db.loginOrRegisterDirect(u, p, currentAuthMode);
         hideAllModals();
         if (res.isAdmin) {
           showToast("⚙️ Sessió d'Administrador iniciada!");
