@@ -2099,12 +2099,16 @@ body {
   z-index: 1;
 }
 
-.trophy-badge-img {
+.trophy-badge-icon {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 30%;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: radial-gradient(circle at 40% 35%, #fff3b0 0%, #d4af37 60%, #855b0a 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  user-select: none;
 }
 
 /* Reflex de llum (shimmer) que recorre la copeta periòdicament */
@@ -2247,20 +2251,66 @@ body {
   pointer-events: none;
 }
 
-.trophy-master-img {
-  width: 175px;
-  height: 250px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 2px solid #e5b869;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(229, 184, 105, 0.55);
-  display: block;
+.trophy-3d-canvas-container {
+  width: 260px;
+  height: 320px;
   margin: 0 auto;
-  transition: transform 0.3s ease;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  border: 2px solid #e5b869;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 35px rgba(229, 184, 105, 0.55);
+  background: radial-gradient(circle at 50% 35%, #2c1a0e 0%, #100804 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
 }
 
-.trophy-master-img:hover {
-  transform: scale(1.03);
+.trophy-3d-canvas-container:active {
+  cursor: grabbing;
+}
+
+.trophy-3d-canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+}
+
+.trophy-3d-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #ffd700;
+  font-weight: 800;
+  font-size: 0.85rem;
+  background: rgba(16, 8, 4, 0.92);
+  z-index: 5;
+  transition: opacity 0.4s ease;
+}
+
+.trophy-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(255, 215, 0, 0.25);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+.trophy-3d-hint {
+  font-size: 0.78rem;
+  color: #ffd700;
+  margin-top: 10px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .trophy-glint-flare {
