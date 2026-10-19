@@ -366,8 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserProfile();
       
       if (result.visited) {
+        checkTrophyStatus(true);
         showToast('🎉 Has marcat aquest pessebre com a visitat!');
       } else {
+        checkTrophyStatus(false);
         showToast('❌ Has desmarcat aquest pessebre.');
       }
     } catch (err) {
@@ -423,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateTopStats();
       renderRankingTable();
       renderUserProfile();
+      checkTrophyStatus(true);
       showToast(`🔴 Has valorat aquest pessebre amb ${rating} ${rating === 1 ? 'bola' : 'boles'} de Nadal!`);
     } catch (err) {
       showToast('⚠️ ' + err.message);
@@ -438,12 +441,123 @@ document.addEventListener('DOMContentLoaded', () => {
     // Actualitzem insígnia d'admin amb pendents
     const pendingCount = window.db.getPendingPoints().length;
     const badge = document.getElementById('admin-pending-badge');
-    if (pendingCount > 0) {
-      badge.textContent = pendingCount;
-      badge.style.display = 'inline-block';
-    } else {
-      badge.style.display = 'none';
+    if (badge) {
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
     }
+
+    // Comprovem l'estat del Trofeu Oficial
+    checkTrophyStatus(false);
+  }
+
+  // 🏆 GESTIÓ I CELEBRACIÓ DEL TROFEU OFICIAL RUTA DELS PESSEBRES
+  function triggerVictoryConfetti() {
+    const symbols = ['🎉', '✨', '⭐', '🌟', '🏆', '❄', '🟡', '🔴'];
+    const colors = ['#ffd700', '#ffb703', '#ffffff', '#e63946', '#2a9d8f'];
+    const total = 80;
+
+    for (let i = 0; i < total; i++) {
+      const p = document.createElement('span');
+      p.className = 'victory-confetti-particle';
+      const isSymbol = Math.random() > 0.45;
+      if (isSymbol) {
+        p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        p.style.fontSize = Math.floor(Math.random() * 16 + 14) + 'px';
+      } else {
+        p.style.width = Math.floor(Math.random() * 8 + 8) + 'px';
+        p.style.height = Math.floor(Math.random() * 12 + 10) + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      }
+
+      const startX = window.innerWidth / 2 + (Math.random() - 0.5) * 350;
+      const startY = window.innerHeight * 0.35 + (Math.random() - 0.5) * 150;
+      const cx = (Math.random() - 0.5) * window.innerWidth * 0.95;
+      const cy = Math.random() * window.innerHeight * 0.65 + 120;
+      const crot = Math.floor((Math.random() - 0.5) * 720);
+      const duration = (Math.random() * 1.5 + 1.8).toFixed(2);
+      const delay = (Math.random() * 0.4).toFixed(2);
+
+      p.style.left = `${startX}px`;
+      p.style.top = `${startY}px`;
+      p.style.setProperty('--cx', `${cx}px`);
+      p.style.setProperty('--cy', `${cy}px`);
+      p.style.setProperty('--crot', `${crot}deg`);
+      p.style.animationDuration = `${duration}s`;
+      p.style.animationDelay = `${delay}s`;
+
+      document.body.appendChild(p);
+      setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, (parseFloat(duration) + parseFloat(delay) + 0.3) * 1000);
+    }
+  }
+
+  function checkTrophyStatus(canCelebrate = false) {
+    const trophyBadge = document.getElementById('trophy-title-badge');
+    if (!trophyBadge) return;
+
+    const currentUser = window.db.getCurrentUser();
+    const approvedPoints = window.db.getApprovedPoints();
+
+    if (!currentUser || approvedPoints.length === 0) {
+      trophyBadge.style.display = 'none';
+      return;
+    }
+
+    const visitedCount = approvedPoints.filter(p => window.db.hasUserVisited(currentUser.id, p.id)).length;
+    const isCompleted = visitedCount >= approvedPoints.length;
+
+    if (isCompleted) {
+      trophyBadge.style.display = 'inline-flex';
+
+      // Actualitzem les dades del modal del Trofeu
+      const totalPointsEl = document.getElementById('trophy-total-points');
+      if (totalPointsEl) totalPointsEl.textContent = approvedPoints.length;
+      const userNameEl = document.getElementById('trophy-user-name');
+      if (userNameEl) userNameEl.textContent = `@${currentUser.username}`;
+
+      // Si és el moment en què ha marcat l'últim pessebre, fem la gran celebració automàtica
+      const celebrationKey = `pessebres_trophy_celebrated_${currentUser.id}`;
+      const alreadyCelebrated = localStorage.getItem(celebrationKey);
+
+      if (canCelebrate && !alreadyCelebrated) {
+        localStorage.setItem(celebrationKey, 'true');
+        setTimeout(() => {
+          triggerVictoryConfetti();
+          showModal('modal-trophy');
+          showToast(`🏆 ENHORABONA @${currentUser.username}! HAS GUANYAT EL TROFEU DELS PESSEBRES 2026!`);
+        }, 500);
+      }
+    } else {
+      trophyBadge.style.display = 'none';
+    }
+  }
+
+  // Clic a la insígnia sota el títol per obrir el trofeu a gran pantalla
+  const trophyBadgeEl = document.getElementById('trophy-title-badge');
+  if (trophyBadgeEl) {
+    trophyBadgeEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentUser = window.db.getCurrentUser();
+      const approvedPoints = window.db.getApprovedPoints();
+      const totalPointsEl = document.getElementById('trophy-total-points');
+      if (totalPointsEl) totalPointsEl.textContent = approvedPoints.length;
+      const userNameEl = document.getElementById('trophy-user-name');
+      if (userNameEl) userNameEl.textContent = currentUser ? `@${currentUser.username}` : 'Pessebrista';
+      triggerVictoryConfetti();
+      showModal('modal-trophy');
+    });
+  }
+
+  const btnTrophyOk = document.getElementById('btn-trophy-ok');
+  if (btnTrophyOk) {
+    btnTrophyOk.addEventListener('click', () => {
+      hideAllModals();
+      showToast('🏆 Trofeu Oficial exhibit amb èxit sota el títol!');
+    });
   }
 
   // 5. GESTIÓ DE MODALS

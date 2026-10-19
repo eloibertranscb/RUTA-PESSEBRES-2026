@@ -27,6 +27,23 @@
         <span class="title-line-1">RUTA DELS</span>
         <span class="title-line-2">PESSEBRES</span>
         <span class="title-line-3">2026</span>
+
+        <!-- TROFEU PERMANENT (SOTA EL TÍTOL QUAN ES COMPLETA EL 100% DELS PESSEBRES) -->
+        <div id="trophy-title-badge" class="trophy-title-badge" style="display: none;" title="🏆 Has completat el 100% de la ruta! Clica per admirar el trofeu">
+          <div class="trophy-badge-glow"></div>
+          <div class="trophy-badge-thumb">
+            <img src="trofeu.jpg" alt="Trofeu Oficial" class="trophy-badge-img">
+            <div class="trophy-badge-shimmer"></div>
+            <div class="trophy-badge-sparkles">
+              <span class="tb-sparkle tbs-1">✨</span>
+              <span class="tb-sparkle tbs-2">⭐</span>
+            </div>
+          </div>
+          <div class="trophy-badge-info">
+            <span class="tb-tag">🏆 RUTA COMPLETADA</span>
+            <span class="tb-name">MÀSTER PESSEBRISTA</span>
+          </div>
+        </div>
       </div>
 
       <!-- BOTONS I ESTADÍSTIQUES FLOTANTS SUPERIORS -->
@@ -319,6 +336,55 @@
         </form>
       </div>
     </div>
+  </div>
+
+  <!-- ----------------------------------------------------------------------
+       MODAL 6: CELEBRACIÓ I DETALL DEL TROFEU OFICIAL (100% COMPLETAT)
+       ---------------------------------------------------------------------- -->
+  <div class="modal-overlay" id="modal-trophy">
+    <div class="modal-card modal-trophy-card">
+      <button class="btn-close-modal" id="btn-close-trophy">&times;</button>
+      <div class="trophy-modal-halo"></div>
+      <div class="trophy-modal-body">
+        <div class="trophy-modal-header">
+          <div class="trophy-modal-star-banner">✨ 🌟 ✨</div>
+          <h2 class="trophy-modal-title">ENHORABONA!</h2>
+          <div class="trophy-modal-badge">🏆 HAS COMPLETAT TOTS ELS PESSEBRES 🏆</div>
+          <p class="trophy-modal-desc">
+            Has visitat amb èxit tots els <strong id="trophy-total-points">60</strong> pessebres oficials de la Ruta dels Pessebres de Sant Feliu Sasserra!
+          </p>
+        </div>
+
+        <div class="trophy-display-wrapper">
+          <div class="trophy-light-rays"></div>
+          <div class="trophy-glow-circle"></div>
+          <img src="trofeu.jpg" alt="Trofeu Pessebres" class="trophy-master-img">
+          <div class="trophy-glint-flare"></div>
+          <div class="trophy-sparkle-stars">
+            <span class="tss tss-1">✨</span>
+            <span class="tss tss-2">⭐</span>
+            <span class="tss tss-3">🌟</span>
+            <span class="tss tss-4">✨</span>
+          </div>
+        </div>
+
+        <div class="trophy-pedestal-plaque">
+          <div class="plaque-border">
+            <div class="plaque-title">DIPLOMA D'HONOR</div>
+            <div class="plaque-name" id="trophy-user-name">Usuari</div>
+            <div class="plaque-sub">Màster Pessebrista · Edició Oficial 2026</div>
+            <div class="plaque-footer">SANT FELIU SASSERRA</div>
+          </div>
+        </div>
+
+        <div class="trophy-modal-actions">
+          <button type="button" class="btn-primary btn-trophy-continue" id="btn-trophy-ok">
+            🎉 Exhibir Trofeu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- TOAST NOTIFICACIÓ -->
   <div class="toast-notification" id="toast-notification"></div>

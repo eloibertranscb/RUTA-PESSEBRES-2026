@@ -2038,4 +2038,365 @@ body {
   }
 }
 
+/* ==========================================================================
+   TROFEU OFICIAL RUTA DELS PESSEBRES (100% COMPLETAT)
+   ========================================================================== */
+
+/* 1. Insígnia flotant sota el títol de PESSEBRES */
+.trophy-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  background: linear-gradient(135deg, rgba(255, 252, 242, 0.96) 0%, rgba(254, 243, 199, 0.94) 100%);
+  border: 2px solid #d4af37;
+  border-radius: 40px;
+  padding: 6px 16px 6px 8px;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.4), 0 0 25px rgba(255, 215, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.22s ease;
+  user-select: none;
+  animation: trophyBadgeEntrance 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.trophy-title-badge:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 26px rgba(212, 175, 55, 0.65), 0 0 35px rgba(255, 215, 0, 0.45);
+}
+
+@keyframes trophyBadgeEntrance {
+  0% { opacity: 0; transform: translateY(-12px) scale(0.85); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Aura lluminosa daurada que batega al voltant del trofeu */
+.trophy-badge-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 44px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.45) 0%, rgba(212, 175, 55, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: trophyGlowPulse 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes trophyGlowPulse {
+  0% { opacity: 0.35; transform: scale(0.98); }
+  100% { opacity: 0.85; transform: scale(1.04); }
+}
+
+.trophy-badge-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #d4af37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.7), inset 0 0 6px rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.trophy-badge-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+
+/* Reflex de llum (shimmer) que recorre la copeta periòdicament */
+.trophy-badge-shimmer {
+  position: absolute;
+  top: -50%;
+  left: -120%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  transform: rotate(30deg);
+  animation: trophyShimmerPass 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes trophyShimmerPass {
+  0%, 70% { left: -120%; }
+  100% { left: 160%; }
+}
+
+.trophy-badge-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tb-sparkle {
+  position: absolute;
+  font-size: 11px;
+  animation: tbSparkleFloat 2s ease-in-out infinite alternate;
+}
+
+.tbs-1 { top: -2px; right: -2px; animation-delay: 0.2s; }
+.tbs-2 { bottom: -2px; left: -2px; animation-delay: 0.9s; }
+
+@keyframes tbSparkleFloat {
+  0% { transform: scale(0.7) rotate(0deg); opacity: 0.4; }
+  100% { transform: scale(1.25) rotate(25deg); opacity: 1; }
+}
+
+.trophy-badge-info {
+  text-align: left;
+  z-index: 1;
+}
+
+.trophy-badge-info .tb-tag {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #7a1a12;
+  letter-spacing: 0.8px;
+  line-height: 1.1;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.trophy-badge-info .tb-name {
+  display: block;
+  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9c6818;
+  letter-spacing: 0.5px;
+}
+
+/* 2. Modal de celebració i admiració del Trofeu */
+.modal-trophy-card {
+  max-width: 480px;
+  background: radial-gradient(circle at 50% 20%, #20130a 0%, #0d0704 100%);
+  border: 2px solid #e5b869;
+  border-radius: var(--radius-lg);
+  color: #fff;
+  padding: 30px 24px 24px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 45px rgba(212, 175, 55, 0.45);
+}
+
+.trophy-modal-halo {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.28) 0%, rgba(212, 175, 55, 0) 70%);
+  pointer-events: none;
+  animation: trophyGlowPulse 3s ease-in-out infinite alternate;
+}
+
+.trophy-modal-star-banner {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.trophy-modal-title {
+  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+  margin-bottom: 6px;
+}
+
+.trophy-modal-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #7a1a12, #a82419, #7a1a12);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid #e5b869;
+  margin-bottom: 12px;
+}
+
+.trophy-modal-desc {
+  font-size: 0.88rem;
+  color: #f3ece5;
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
+
+/* Mostrador del Trofeu */
+.trophy-display-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 6px auto 16px auto;
+}
+
+.trophy-glow-circle {
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, rgba(255, 215, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.trophy-master-img {
+  width: 175px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #e5b869;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(229, 184, 105, 0.55);
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.3s ease;
+}
+
+.trophy-master-img:hover {
+  transform: scale(1.03);
+}
+
+.trophy-glint-flare {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 16px 6px rgba(255, 255, 255, 0.9), 0 0 25px 10px rgba(255, 215, 0, 0.8);
+  animation: trophyGlintFlash 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes trophyGlintFlash {
+  0%, 75% { opacity: 0; transform: scale(0.4); }
+  85% { opacity: 1; transform: scale(1.4); }
+  95%, 100% { opacity: 0; transform: scale(0.4); }
+}
+
+.trophy-sparkle-stars .tss {
+  position: absolute;
+  font-size: 16px;
+  animation: tssFloat 2.4s ease-in-out infinite alternate;
+}
+
+.tss-1 { top: -10px; left: -10px; animation-delay: 0.1s; }
+.tss-2 { top: -5px; right: -12px; animation-delay: 0.7s; }
+.tss-3 { bottom: 25px; left: -15px; animation-delay: 1.2s; }
+.tss-4 { bottom: 35px; right: -12px; animation-delay: 1.8s; }
+
+@keyframes tssFloat {
+  0% { transform: scale(0.8) translateY(0); opacity: 0.5; }
+  100% { transform: scale(1.3) translateY(-6px); opacity: 1; }
+}
+
+/* Placa d'honor daurada estil llautó noble */
+.trophy-pedestal-plaque {
+  background: linear-gradient(135deg, #d4af37 0%, #fff0a0 35%, #b38b1b 70%, #f3db78 100%);
+  border: 2px solid #805c0d;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin: 12px auto 18px auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+  max-width: 360px;
+}
+
+.plaque-title {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #523507;
+  text-transform: uppercase;
+}
+
+.plaque-name {
+  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #2e1c03;
+  margin: 2px 0;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.plaque-sub {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5c3f0c;
+}
+
+.plaque-footer {
+  font-size: 0.64rem;
+  font-weight: 900;
+  color: #7a5210;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.btn-trophy-continue {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #7a1a12 0%, #a82419 100%);
+  border: 1.5px solid #d4af37;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(122, 26, 18, 0.5);
+  cursor: pointer;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.btn-trophy-continue:hover {
+  background: linear-gradient(135deg, #8c1e15 0%, #b8281b 100%);
+  transform: translateY(-1px);
+}
+
+/* Partícules de confeti daurat */
+.victory-confetti-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100000;
+  user-select: none;
+  will-change: transform, opacity;
+  animation: confettiFall ease-out forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--cx), var(--cy)) rotate(var(--crot)) scale(0.6);
+  }
+}
+
+/* Adaptació mòbil per a la insígnia del trofeu */
+@media (max-width: 768px) {
+  .trophy-title-badge {
+    margin-top: 6px;
+    padding: 4px 12px 4px 6px;
+    gap: 8px;
+  }
+  .trophy-badge-thumb {
+    width: 34px;
+    height: 34px;
+  }
+  .trophy-badge-info .tb-tag {
+    font-size: 0.68rem;
+  }
+  .trophy-badge-info .tb-name {
+    font-size: 0.6rem;
+  }
+}
+
 
