@@ -2236,14 +2236,17 @@ body {
 /* 2. Modal de celebració i admiració del Trofeu */
 .modal-trophy-card {
   max-width: 480px;
+  width: 92%;
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: radial-gradient(circle at 50% 20%, #20130a 0%, #0d0704 100%);
   border: 2px solid #e5b869;
   border-radius: var(--radius-lg);
   color: #fff;
-  padding: 30px 24px 24px 24px;
+  padding: 26px 20px 20px 20px;
   text-align: center;
   position: relative;
-  overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 45px rgba(212, 175, 55, 0.45);
 }
 
@@ -2449,10 +2452,47 @@ body {
   margin-top: 4px;
 }
 
+.trophy-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-trophy-download {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #d4af37 0%, #f7dc6f 40%, #b38b1b 80%, #f9e79f 100%);
+  border: 1.5px solid #805c0d;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  color: #3d2605;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btn-trophy-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(212, 175, 55, 0.65);
+  background: linear-gradient(135deg, #dfbc45 0%, #fae58c 40%, #c49924 80%, #faecaf 100%);
+}
+
+.btn-trophy-download:active {
+  transform: translateY(0);
+}
+
 .btn-trophy-continue {
   width: 100%;
-  padding: 12px;
-  font-size: 1rem;
+  padding: 10px;
+  font-size: 0.92rem;
   background: linear-gradient(135deg, #7a1a12 0%, #a82419 100%);
   border: 1.5px solid #d4af37;
   border-radius: var(--radius-md);
@@ -2461,6 +2501,7 @@ body {
   color: #fff;
   font-weight: 800;
   letter-spacing: 0.5px;
+  transition: all 0.2s ease;
 }
 
 .btn-trophy-continue:hover {
@@ -2489,22 +2530,97 @@ body {
   }
 }
 
-/* Adaptació mòbil per a la insígnia del trofeu */
+/* Adaptació mòbil per a la insígnia del trofeu i el modal de celebració / diploma */
 @media (max-width: 768px) {
   .trophy-title-badge {
     margin-top: 6px;
-    padding: 4px 12px 4px 6px;
-    gap: 8px;
+    padding: 6px 8px;
   }
-  .trophy-badge-thumb {
-    width: 34px;
-    height: 34px;
+  .trophy-header-3d-container {
+    width: 95px;
+    height: 110px;
   }
   .trophy-badge-info .tb-tag {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
   }
   .trophy-badge-info .tb-name {
+    font-size: 0.58rem;
+  }
+
+  /* Modal de celebració i diploma a mòbil */
+  .modal-trophy-card {
+    width: 94%;
+    max-height: 94vh;
+    padding: 18px 14px 16px 14px;
+    border-radius: 16px;
+  }
+  .trophy-modal-halo {
+    width: 220px;
+    height: 220px;
+    top: -50px;
+  }
+  .trophy-modal-star-banner {
+    font-size: 1.15rem;
+    margin-bottom: 2px;
+  }
+  .trophy-modal-title {
+    font-size: 1.55rem;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .trophy-modal-badge {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    margin-bottom: 8px;
+  }
+  .trophy-modal-desc {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+  .trophy-display-wrapper {
+    margin: 4px auto 8px auto;
+  }
+  .trophy-3d-canvas-container {
+    width: 190px;
+    height: 220px;
+    border-radius: 12px;
+  }
+  .trophy-3d-hint {
+    font-size: 0.7rem;
+    margin-top: 6px;
+  }
+  .trophy-pedestal-plaque {
+    padding: 8px 12px;
+    margin: 8px auto 10px auto;
+    max-width: 320px;
+  }
+  .plaque-title {
     font-size: 0.6rem;
+    letter-spacing: 1px;
+  }
+  .plaque-name {
+    font-size: 1.15rem;
+    margin: 1px 0;
+  }
+  .plaque-sub {
+    font-size: 0.68rem;
+  }
+  .plaque-footer {
+    font-size: 0.58rem;
+    margin-top: 2px;
+  }
+  .trophy-modal-actions {
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .btn-trophy-download {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+  .btn-trophy-continue {
+    padding: 9px 12px;
+    font-size: 0.86rem;
   }
 }
 

@@ -726,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
       headerTrophyCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       headerTrophyCamera.position.set(0, 0, 3.4);
 
-      headerTrophyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      headerTrophyRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       headerTrophyRenderer.setSize(width, height);
       headerTrophyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       if (THREE.sRGBEncoding) headerTrophyRenderer.outputEncoding = THREE.sRGBEncoding;
@@ -839,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalPointsEl = document.getElementById('trophy-total-points');
       if (totalPointsEl) totalPointsEl.textContent = approvedPoints.length;
       const userNameEl = document.getElementById('trophy-user-name');
-      if (userNameEl) userNameEl.textContent = `@${currentUser.username}`;
+      if (userNameEl) userNameEl.textContent = (currentUser?.username || 'Pessebrista').replace(/^@+/, '');
 
       // Si és el moment en què ha marcat l'últim pessebre, fem la gran celebració automàtica
       const celebrationKey = `pessebres_trophy_celebrated_${currentUser.id}`;
@@ -879,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
       trophy3DCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       trophy3DCamera.position.set(0, 0, 3.4);
 
-      trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      trophy3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       trophy3DRenderer.setSize(width, height);
       trophy3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       if (THREE.sRGBEncoding) trophy3DRenderer.outputEncoding = THREE.sRGBEncoding;
@@ -1018,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalPointsEl = document.getElementById('trophy-total-points');
       if (totalPointsEl) totalPointsEl.textContent = approvedPoints.length;
       const userNameEl = document.getElementById('trophy-user-name');
-      if (userNameEl) userNameEl.textContent = currentUser ? `@${currentUser.username}` : 'Pessebrista';
+      if (userNameEl) userNameEl.textContent = (currentUser?.username || 'Pessebrista').replace(/^@+/, '');
       triggerVictoryConfetti();
       showModal('modal-trophy');
       initTrophy3D();
@@ -1030,6 +1030,319 @@ document.addEventListener('DOMContentLoaded', () => {
     btnTrophyOk.addEventListener('click', () => {
       hideAllModals();
       showToast('🏆 Trofeu Oficial exhibit amb èxit sota el títol!');
+    });
+  }
+
+  // 📜 GENERADOR DE DIPLOMA OFICIAL D'HONOR EN PDF D'ALTA DEFINICIÓ
+  window.downloadDiplomaPDF = async function() {
+    const btn = document.getElementById('btn-download-diploma');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Generant Diploma Oficial...';
+    }
+    showToast('📜 Preparant el teu Diploma Oficial de Màster Pessebrista...');
+
+    try {
+      const currentUser = window.db.getCurrentUser();
+      const rawName = currentUser ? currentUser.username : 'Pessebrista d\'Honor';
+      const cleanName = rawName.replace(/^@+/, '').trim() || 'Pessebrista d\'Honor';
+      const approvedCount = window.db.getApprovedPoints().length || 19;
+
+      const mesos = ['de gener', 'de febrer', 'de març', 'd\'abril', 'de maig', 'de juny', 'de juliol', 'd\'agost', 'de setembre', 'd\'octubre', 'de novembre', 'de desembre'];
+      const avui = new Date();
+      const dataText = `${avui.getDate()} ${mesos[avui.getMonth()]} de ${avui.getFullYear()}`;
+
+      // Canvas A4 Horitzontal d'alta definició (2400 x 1700 px = ~300 DPI per a impressió nítida)
+      const canvas = document.createElement('canvas');
+      canvas.width = 2400;
+      canvas.height = 1700;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Fons pergamí noble càlid amb degradat suau
+      const bgGrad = ctx.createRadialGradient(1200, 850, 200, 1200, 850, 1400);
+      bgGrad.addColorStop(0, '#fefdfa');
+      bgGrad.addColorStop(0.7, '#fbf6ea');
+      bgGrad.addColorStop(1, '#f3e8cf');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 2400, 1700);
+
+      // 2. Marc exterior noble vermell nadalenc
+      ctx.lineWidth = 28;
+      ctx.strokeStyle = '#6b140d';
+      ctx.strokeRect(34, 34, 2332, 1632);
+
+      // 3. Marc interior daurat or polit
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#d4af37';
+      ctx.strokeRect(58, 58, 2284, 1584);
+
+      // 4. Filigrana fina interior
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#8f670e';
+      ctx.strokeRect(74, 74, 2252, 1552);
+
+      // Cantonades ornamentals daurades
+      function drawCornerOrnament(x, y, flipX, flipY) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(flipX, flipY);
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(10, 50);
+        ctx.lineTo(10, 10);
+        ctx.lineTo(50, 10);
+        ctx.stroke();
+
+        ctx.fillStyle = '#b38b1b';
+        ctx.beginPath();
+        ctx.arc(20, 20, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#b38b1b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(35, 35, 12, Math.PI, 1.5 * Math.PI);
+        ctx.stroke();
+        ctx.restore();
+      }
+      drawCornerOrnament(84, 84, 1, 1);
+      drawCornerOrnament(2316, 84, -1, 1);
+      drawCornerOrnament(84, 1616, 1, -1);
+      drawCornerOrnament(2316, 1616, -1, -1);
+
+      // 5. Capçalera de l'Ajuntament / Entitat
+      ctx.textAlign = 'center';
+      ctx.font = '900 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = '#6b140d';
+      ctx.letterSpacing = '5px';
+      ctx.fillText('AJUNTAMENT DE SANT FELIU SASSERRA · COMISSIÓ DE NADAL', 1200, 155);
+
+      // Línia decorativa sota capçalera
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(700, 180);
+      ctx.lineTo(1700, 180);
+      ctx.stroke();
+
+      // Diamant central a la línia
+      ctx.fillStyle = '#7a1a12';
+      ctx.beginPath();
+      ctx.moveTo(1200, 172);
+      ctx.lineTo(1210, 180);
+      ctx.lineTo(1200, 188);
+      ctx.lineTo(1190, 180);
+      ctx.closePath();
+      ctx.fill();
+
+      // 6. Títol principal del Diploma
+      ctx.font = '900 100px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#7a1a12';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.45)';
+      ctx.shadowBlur = 14;
+      ctx.fillText('DIPLOMA D\'HONOR', 1200, 310);
+      ctx.shadowBlur = 0;
+
+      // Subtítol de reconeixement
+      ctx.font = '800 44px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#b38b1b';
+      ctx.fillText('MÀSTER PESSEBRISTA · EDICIÓ OFICIAL 2026', 1200, 385);
+
+      // Estrelles daurades
+      ctx.font = '36px sans-serif';
+      ctx.fillStyle = '#ffd700';
+      ctx.fillText('★   ★   ★   ★   ★', 1200, 440);
+
+      // 7. Text de presentació
+      ctx.font = 'italic 34px Georgia, serif';
+      ctx.fillStyle = '#5c3f0c';
+      ctx.fillText('Per la present es certifica oficialment amb el màxim mèrit i reconeixement a:', 1200, 520);
+
+      // 8. Nom del Pessebrista Guardonat (Molt destacat)
+      ctx.font = '900 96px "Bodoni Moda", "Playfair Display", Georgia, serif';
+      ctx.fillStyle = '#221105';
+      ctx.fillText(cleanName, 1200, 640);
+
+      // Subratllat d'honor per al nom
+      const nameWidth = Math.min(ctx.measureText(cleanName).width + 80, 1600);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#d4af37';
+      ctx.beginPath();
+      ctx.moveTo(1200 - nameWidth / 2, 665);
+      ctx.lineTo(1200 + nameWidth / 2, 665);
+      ctx.stroke();
+
+      // 9. Text d'assoliment
+      ctx.font = '400 32px Georgia, serif';
+      ctx.fillStyle = '#3a2610';
+      const textLine1 = `Per haver completat amb èxit i constància la totalitat dels ${approvedCount} pessebres que configuren`;
+      const textLine2 = `la Ruta dels Pessebres de Sant Feliu Sasserra, contribuint a la preservació i l'enaltiment`;
+      const textLine3 = `de la tradició viva pessebrista, de la convivència i del nostre patrimoni cultural.`;
+      ctx.fillText(textLine1, 1200, 740);
+      ctx.fillText(textLine2, 1200, 790);
+      ctx.fillText(textLine3, 1200, 840);
+
+      // 10. Imatge del Trofeu Oficial 3D en alta definició
+      const trophy3dCanvas = document.querySelector('#trophy-3d-canvas-container canvas') || document.querySelector('#trophy-header-3d-container canvas');
+      let renderedTrophyDrawn = false;
+
+      if (trophy3dCanvas) {
+        try {
+          const img = new Image();
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // Dibuixar aura radiant al voltant del trofeu
+              const aura = ctx.createRadialGradient(1200, 1150, 30, 1200, 1150, 240);
+              aura.addColorStop(0, 'rgba(255, 225, 120, 0.45)');
+              aura.addColorStop(0.6, 'rgba(212, 175, 55, 0.2)');
+              aura.addColorStop(1, 'rgba(212, 175, 55, 0)');
+              ctx.fillStyle = aura;
+              ctx.beginPath();
+              ctx.arc(1200, 1150, 240, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Dibuixar el trofeu capturat del 3D
+              const tw = 320;
+              const th = Math.round((img.height / (img.width || 1)) * tw) || 400;
+              ctx.drawImage(img, 1200 - tw / 2, 940, tw, th);
+              renderedTrophyDrawn = true;
+              resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = trophy3dCanvas.toDataURL('image/png');
+          });
+        } catch (e) {
+          console.warn("No s'ha pogut capturar el canvas 3D directament:", e);
+        }
+      }
+
+      if (!renderedTrophyDrawn) {
+        ctx.font = '160px sans-serif';
+        ctx.fillText('🏆', 1200, 1150);
+      }
+
+      // 11. Segell Oficial d'Or a la dreta (estil cera / medalla daurada gravada)
+      const sealX = 1950;
+      const sealY = 1380;
+      const sealR = 120;
+
+      // Cintes del segell que pengen
+      ctx.fillStyle = '#7a1a12';
+      ctx.beginPath();
+      ctx.moveTo(sealX - 45, sealY + 70);
+      ctx.lineTo(sealX - 65, sealY + 200);
+      ctx.lineTo(sealX - 35, sealY + 180);
+      ctx.lineTo(sealX - 5, sealY + 200);
+      ctx.lineTo(sealX - 15, sealY + 80);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(sealX + 15, sealY + 80);
+      ctx.lineTo(sealX + 5, sealY + 200);
+      ctx.lineTo(sealX + 35, sealY + 180);
+      ctx.lineTo(sealX + 65, sealY + 200);
+      ctx.lineTo(sealX + 45, sealY + 70);
+      ctx.closePath();
+      ctx.fill();
+
+      // Medalló daurat del segell
+      const sealGrad = ctx.createRadialGradient(sealX - 25, sealY - 25, 10, sealX, sealY, sealR);
+      sealGrad.addColorStop(0, '#fff4b8');
+      sealGrad.addColorStop(0.5, '#d4af37');
+      sealGrad.addColorStop(0.85, '#a67c1e');
+      sealGrad.addColorStop(1, '#664c13');
+      ctx.fillStyle = sealGrad;
+      ctx.beginPath();
+      ctx.arc(sealX, sealY, sealR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#fff0a0';
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#4a360c';
+      ctx.beginPath();
+      ctx.arc(sealX, sealY, sealR - 14, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#3a2807';
+      ctx.font = '900 18px -apple-system, sans-serif';
+      ctx.fillText('★ SANT FELIU SASSERRA ★', sealX, sealY - 45);
+      ctx.font = '900 28px "Bodoni Moda", serif';
+      ctx.fillText('2026', sealX, sealY);
+      ctx.font = '800 16px -apple-system, sans-serif';
+      ctx.fillText('MÀSTER PESSEBRISTA', sealX, sealY + 35);
+      ctx.font = '700 13px -apple-system, sans-serif';
+      ctx.fillText('SEGELL OFICIAL', sealX, sealY + 60);
+
+      // 12. Signatures i Data oficial a l'esquerra
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#4a3215';
+      ctx.font = '700 24px Georgia, serif';
+      ctx.fillText(`Data d'expedició: ${dataText}`, 220, 1370);
+      ctx.font = '400 21px monospace';
+      ctx.fillStyle = '#7a5a30';
+      const hash = Math.abs(cleanName.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)).toString(16).toUpperCase().padStart(8, '0');
+      ctx.fillText(`Codi de verificació: SFS-2026-${hash}`, 220, 1410);
+
+      // Signatura fictícia elegant
+      ctx.textAlign = 'center';
+      ctx.font = 'italic 34px "Brush Script MT", "Playfair Display", cursive, serif';
+      ctx.fillStyle = '#301807';
+      ctx.fillText('Comissió Ruta dels Pessebres', 600, 1485);
+      ctx.strokeStyle = '#8f670e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(380, 1500);
+      ctx.lineTo(820, 1500);
+      ctx.stroke();
+      ctx.font = '700 20px -apple-system, sans-serif';
+      ctx.fillStyle = '#6b4923';
+      ctx.fillText('L\'ORGANITZACIÓ OFICIAL', 600, 1530);
+
+      // 13. Exportar a PDF oficial amb jsPDF
+      const safeFilename = `Diploma_Master_Pessebrista_${cleanName.replace(/[^a-zA-Z0-9_-]/g, '_')}_2026`;
+
+      if (window.jspdf && window.jspdf.jsPDF) {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const imgData = canvas.toDataURL('image/jpeg', 0.96);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+        pdf.save(`${safeFilename}.pdf`);
+        showToast('📜 Diploma Oficial en PDF descarregat amb èxit!');
+      } else {
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${safeFilename}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('📜 Diploma Oficial descarregat com a imatge!');
+        });
+      }
+    } catch (err) {
+      console.error('Error generant el diploma PDF:', err);
+      showToast('❌ Error generant el diploma: ' + err.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+  };
+
+  const btnDownloadDiploma = document.getElementById('btn-download-diploma');
+  if (btnDownloadDiploma) {
+    btnDownloadDiploma.addEventListener('click', () => {
+      window.downloadDiplomaPDF();
     });
   }
 
