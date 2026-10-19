@@ -34,6 +34,33 @@ const SEED_POINTS = [
   { id: 'pt_19', name: 'L\'OLIVERA DE CAL PRIM / CAL BASTÓ', municipality: 'Sant Feliu Sasserra', latitude: 41.9320, longitude: 2.0140, description: 'Al peu de l\'olivera centenària.', submitted_by: 'Organització', status: 'APPROVED', created_at: '2026-01-05T19:00:00Z' }
 ];
 
+// Integració oficial de tots els pessebres de la prova (20 a 60) al normal
+const NOM_TEMPLATES = [
+  'FONT DEL ROURE',
+  'CAL MASOVER DE LA SERRA ALTA',
+  'BAUMA GRAN',
+  'PLA DE LES ERES',
+  'MOLÍ VELL DEL TORRENT DE LA COMA',
+  'CAN PUJOL',
+  'ERMITA DE SANT JOAN',
+  'BARRACA DE PEDRA SECA DEL CAMÍ RAL'
+];
+
+for (let i = 20; i <= 60; i++) {
+  const nomBase = NOM_TEMPLATES[(i - 20) % NOM_TEMPLATES.length];
+  SEED_POINTS.push({
+    id: `pt_${i}`,
+    name: `${nomBase} ${i}`,
+    municipality: 'Sant Feliu Sasserra',
+    latitude: Number((41.932 + (((i - 1) * 37) % 100) / 100 * 0.026).toFixed(4)),
+    longitude: Number((2.006 + (((i - 1) * 61) % 100) / 100 * 0.028).toFixed(4)),
+    description: 'Pessebre tradicional integrat a la ruta de Sant Feliu Sasserra.',
+    submitted_by: 'Organització',
+    status: 'APPROVED',
+    created_at: new Date(1736000000000 + i * 3600000).toISOString()
+  });
+}
+
 const ADMIN_CREDENTIALS = {
   username: 'admin',
   password: 'adminpessebres3726c9b'
@@ -47,13 +74,18 @@ class PessebresDB {
   }
 
   init() {
-    // 1. Assegurar dades inicials a localStorage (netejat de noms inventats)
+    // 1. Assegurar dades inicials a localStorage amb els 60 pessebres de la ruta
     const currentPoints = localStorage.getItem(DB_KEYS.POINTS);
-    if (!currentPoints || JSON.parse(currentPoints).length === 0) {
-      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(SEED_POINTS));
+    let pts = currentPoints ? JSON.parse(currentPoints) : [];
+    if (pts.length < 60) {
+      const existingIds = new Set(pts.map(p => p.id));
+      SEED_POINTS.forEach(sp => {
+        if (!existingIds.has(sp.id)) pts.push(sp);
+      });
+      localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(pts));
     } else {
       const fakeAuthors = ['Marc', 'Anna', 'Jordi', 'Pau', 'Laura', 'Miquel'];
-      const pts = JSON.parse(currentPoints).map(p => ({
+      pts = pts.map(p => ({
         ...p,
         submitted_by: fakeAuthors.includes(p.submitted_by) ? 'Organització' : (p.submitted_by || 'Organització')
       }));
@@ -107,7 +139,14 @@ class PessebresDB {
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(resUsers.data));
       }
       if (!resPoints.error && resPoints.data && resPoints.data.length > 0) {
-        localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(resPoints.data));
+        let cloudPoints = resPoints.data;
+        if (cloudPoints.length < 60) {
+          const cloudIds = new Set(cloudPoints.map(p => p.id));
+          SEED_POINTS.forEach(sp => {
+            if (!cloudIds.has(sp.id)) cloudPoints.push(sp);
+          });
+        }
+        localStorage.setItem(DB_KEYS.POINTS, JSON.stringify(cloudPoints));
       }
       if (!resVisits.error && resVisits.data) {
         localStorage.setItem(DB_KEYS.VISITS, JSON.stringify(resVisits.data));
@@ -259,7 +298,13 @@ class PessebresDB {
   }
 
   getApprovedPoints() {
-    const pts = this.getPoints().filter(p => p.status === 'APPROVED');
+    let pts = this.getPoints().filter(p => p.status === 'APPROVED');
+    if (pts.length < 60) {
+      const existingIds = new Set(pts.map(p => p.id));
+      SEED_POINTS.forEach(sp => {
+        if (!existingIds.has(sp.id)) pts.push(sp);
+      });
+    }
     return pts.sort((a, b) => {
       const numA = parseInt(a.id.replace(/\D/g, ''), 10);
       const numB = parseInt(b.id.replace(/\D/g, ''), 10);

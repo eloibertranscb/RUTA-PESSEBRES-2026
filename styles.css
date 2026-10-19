@@ -1968,4 +1968,74 @@ body {
   font-size: 0.88rem;
 }
 
+/* ==========================================================================
+   ANIMACIONS NADALENQUES PER A LES BOLES DE NADAL I NEU
+   ========================================================================== */
+@keyframes baubleSwing {
+  0% { transform: scale(1) rotate(0deg); }
+  20% { transform: scale(1.3) rotate(-14deg); }
+  40% { transform: scale(1.22) rotate(12deg); }
+  60% { transform: scale(1.1) rotate(-6deg); }
+  80% { transform: scale(1.04) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.bauble-btn.bauble-swing {
+  animation: baubleSwing 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.bauble-sparkle-ring {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 215, 0, 0.85);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.7), inset 0 0 8px rgba(255, 255, 255, 0.8);
+  animation: baubleRingBurst 0.6s ease-out forwards;
+}
+
+@keyframes baubleRingBurst {
+  0% {
+    width: 8px;
+    height: 8px;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    width: 68px;
+    height: 68px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+}
+
+.xmas-snow-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  user-select: none;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-fill-mode: forwards;
+}
+
+@keyframes xmasSnowFall {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--vx) * 0.15), calc(-50% + var(--vy) * 0.1)) scale(1.15) rotate(calc(var(--rot) * 0.2));
+  }
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--vx)), calc(-50% + var(--vy))) scale(0.5) rotate(var(--rot));
+  }
+}
+
 

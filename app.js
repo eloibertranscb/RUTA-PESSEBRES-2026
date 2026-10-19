@@ -96,16 +96,90 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let openPopupPointId = null;
+  let isRebuildingMarkers = false;
 
-  // 2. RENDERITZAR MARCADORS NUMERATS I GESTIÓ D'ACCÉS
+  // EFECTE NADALENC: Neu que cau de la bola de Nadal i balanceig festiu
+  function triggerChristmasSnowEffect(targetEl) {
+    if (!targetEl) return;
+    const rect = targetEl.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+
+    // 1. Balanceig / jiggle nadalenc a la bola clicada
+    targetEl.classList.remove('bauble-swing');
+    void targetEl.offsetWidth; // Forçar reflow per reiniciar animació
+    targetEl.classList.add('bauble-swing');
+
+    // 2. Anell d'espurnes daurat que s'expandeix des de la bola
+    const ring = document.createElement('div');
+    ring.className = 'bauble-sparkle-ring';
+    ring.style.left = `${originX}px`;
+    ring.style.top = `${originY}px`;
+    document.body.appendChild(ring);
+    setTimeout(() => { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 650);
+
+    // 3. Flocs de neu i cristall que cauen suaument cap avall
+    const flakes = ['❄', '❅', '✻', '❆', '✨', '•', '·', '❄', '✨'];
+    const count = 22;
+
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('span');
+      p.className = 'xmas-snow-particle';
+      const symbol = flakes[Math.floor(Math.random() * flakes.length)];
+      p.textContent = symbol;
+
+      const size = (symbol === '•' || symbol === '·')
+        ? Math.floor(Math.random() * 8 + 10)
+        : Math.floor(Math.random() * 12 + 13);
+      const vx = (Math.random() - 0.5) * 80; // deriva horitzontal (-40px a +40px)
+      const vy = Math.random() * 95 + 45;   // caiguda vertical (45px a 140px)
+      const duration = (Math.random() * 0.6 + 0.85).toFixed(2);
+      const delay = (Math.random() * 0.15).toFixed(2);
+      const rot = Math.floor((Math.random() - 0.5) * 360);
+
+      const isGold = symbol === '✨';
+      const color = isGold ? '#fadb14' : (Math.random() > 0.3 ? '#ffffff' : '#e0f2fe');
+      const shadow = isGold 
+        ? '0 0 8px rgba(250, 219, 20, 0.9), 0 0 12px rgba(245, 106, 0, 0.6)'
+        : '0 0 6px rgba(255, 255, 255, 0.95), 0 0 10px rgba(184, 20, 20, 0.5)';
+
+      p.style.cssText = `
+        left: ${originX}px;
+        top: ${originY}px;
+        font-size: ${size}px;
+        color: ${color};
+        text-shadow: ${shadow};
+        --vx: ${vx}px;
+        --vy: ${vy}px;
+        --rot: ${rot}deg;
+        animation: xmasSnowFall ${duration}s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}s forwards;
+      `;
+
+      document.body.appendChild(p);
+      setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, (parseFloat(duration) + parseFloat(delay) + 0.2) * 1000);
+    }
+  }
+
+  // 2. RENDERITZAR MARCADORS NUMERATS I GESTIÓ D'ACCÉS (SENSE TANCAR EL POPUP)
   function renderApprovedMarkers(skipFitBounds = false) {
-    markersGroup.clearLayers();
     const approvedPoints = window.db.getApprovedPoints();
     const currentUser = window.db.getCurrentUser();
     const bounds = [];
 
     const indexUl = document.getElementById('index-panel-ul');
     if (indexUl) indexUl.innerHTML = '';
+
+    const currentApprovedIds = new Set(approvedPoints.map(p => p.id));
+
+    // Netejar marcadors que ja no estan aprovats o eliminats
+    Object.keys(markerMap).forEach(id => {
+      if (!currentApprovedIds.has(id)) {
+        if (markersGroup.hasLayer(markerMap[id])) {
+          markersGroup.removeLayer(markerMap[id]);
+        }
+        delete markerMap[id];
+      }
+    });
 
     approvedPoints.forEach((point, idx) => {
       const number = idx + 1;
@@ -114,13 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const userRating = currentUser ? window.db.getUserRatingForPoint(currentUser.id, point.id) : 0;
       const ratingStats = window.db.getPointRatingStats(point.id);
 
-      const markerIcon = createNumberedMarkerIcon(number, isVisited);
-      const marker = L.marker([point.latitude, point.longitude], { icon: markerIcon });
       bounds.push([point.latitude, point.longitude]);
-      markerMap[point.id] = marker;
-
-      marker.on('popupopen', () => { openPopupPointId = point.id; });
-      marker.on('popupclose', () => { if (openPopupPointId === point.id) openPopupPointId = null; });
 
       // Boles de Nadal (1 a 5) per valorar el pessebre (no influeix al rànquing)
       let ballsHtml = '';
@@ -128,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isActive = currentUser ? (b <= userRating) : (b <= Math.round(ratingStats.average));
         const activeClass = isActive ? 'bauble-active' : 'bauble-inactive';
         const clickAttr = currentUser
-          ? `onclick="handleRateClick('${point.id}', ${b})"`
+          ? `onclick="handleRateClick('${point.id}', ${b}, event)"`
           : `onclick="window.openAuthModal()"`;
         ballsHtml += `
-          <button type="button" class="bauble-btn ${activeClass}" ${clickAttr} title="${b} ${b === 1 ? 'bola de Nadal' : 'boles de Nadal'}">
+          <button type="button" class="bauble-btn ${activeClass}" ${clickAttr} title="${b} ${b === 1 ? 'bola de Nadal' : 'boles de Nadal'}" data-ball="${b}">
             <span class="bauble-cap"></span>
             <span class="bauble-globe"><span class="bauble-shine"></span></span>
           </button>
@@ -206,8 +274,26 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      marker.bindPopup(popupContent);
-      markersGroup.addLayer(marker);
+      const markerIcon = createNumberedMarkerIcon(number, isVisited);
+      let marker = markerMap[point.id];
+
+      if (marker && markersGroup.hasLayer(marker)) {
+        // Marcador ja existent al mapa: actualitzem icona i contingut SENSE tancar el popup
+        marker.setIcon(markerIcon);
+        marker.setPopupContent(popupContent);
+      } else {
+        // Marcador nou
+        marker = L.marker([point.latitude, point.longitude], { icon: markerIcon });
+        markerMap[point.id] = marker;
+        marker.bindPopup(popupContent);
+        marker.on('popupopen', () => { openPopupPointId = point.id; });
+        marker.on('popupclose', () => {
+          if (!isRebuildingMarkers && openPopupPointId === point.id) {
+            openPopupPointId = null;
+          }
+        });
+        markersGroup.addLayer(marker);
+      }
 
       if (indexUl) {
         const li = document.createElement('li');
@@ -253,13 +339,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (openPopupPointId && markerMap[openPopupPointId]) {
-      markerMap[openPopupPointId].openPopup();
+      if (!markerMap[openPopupPointId].isPopupOpen()) {
+        markerMap[openPopupPointId].openPopup();
+      }
     }
 
     updateTopStats();
   }
 
-  // 3. ACCIÓ "HI HE ANAT" I VALORACIÓ AMB BOLES DE NADAL
+  // 3. ACCIÓ "HI HE ANAT" I VALORACIÓ AMB BOLES DE NADAL (SENSE TANCAR LA PESTANYA)
   window.handleVisitClick = async function(pointId) {
     const currentUser = window.db.getCurrentUser();
     
@@ -287,12 +375,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  window.handleRateClick = async function(pointId, rating) {
+  window.handleRateClick = async function(pointId, rating, event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+    }
     const currentUser = window.db.getCurrentUser();
     if (!currentUser) {
       showToast('⚠️ Identifica\'t o registra\'t per valorar amb les boles de Nadal!');
       window.openAuthModal();
       return;
+    }
+
+    const clickedBtn = event && event.currentTarget ? event.currentTarget : null;
+    if (clickedBtn) {
+      // 1. Efecte de caiguda de neu nadalenca i balanceig de la bola
+      triggerChristmasSnowEffect(clickedBtn);
+
+      // 2. Actualització visual immediata dins del popup obert (sense tancar la pestanya)
+      const ballsRow = clickedBtn.closest('.bauble-balls-row');
+      if (ballsRow) {
+        const btns = ballsRow.querySelectorAll('.bauble-btn');
+        btns.forEach((btn, idx) => {
+          const ballNum = idx + 1;
+          if (ballNum <= rating) {
+            btn.classList.add('bauble-active');
+            btn.classList.remove('bauble-inactive');
+          } else {
+            btn.classList.remove('bauble-active');
+            btn.classList.add('bauble-inactive');
+          }
+        });
+      }
+      const ratingBox = clickedBtn.closest('.pessebre-bauble-rating-box');
+      if (ratingBox) {
+        const labelEl = ratingBox.querySelector('.bauble-rating-label');
+        if (labelEl) {
+          labelEl.innerHTML = `La teva valoració: <strong>${rating} / 5 🔴</strong>`;
+        }
+      }
     }
 
     try {
